@@ -14,7 +14,7 @@ type FO struct {
 	projections StatsClient
 }
 
-func NewFO(yc *YahooClient, projections *ZipsClient) *FO {
+func NewFO(yc *YahooClient, projections StatsClient) *FO {
 	return &FO{yc: yc, projections: projections}
 }
 
