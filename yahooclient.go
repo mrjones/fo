@@ -80,7 +80,7 @@ func mapYahooIdToStatId() map[int]StatID {
 	}
 }
 
-func (yc *YahooClient) MyStats() (*StatLine, error) {
+func (yc *YahooClient) CurrentStats() (*map[int]StatLine, error) {
 	response, err := yc.Get(
 		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/standings")
 
@@ -110,8 +110,13 @@ func (yc *YahooClient) MyStats() (*StatLine, error) {
 		}
 		teamstats[team.TeamId] = statline
 	}
+	return &teamstats
+}
 
-	mystats := teamstats[6]
+func (yc *YahooClient) MyStats() (*StatLine, error) {
+	leaguestats, err := CurrentStats()
+	if err != nil { return nil, err}
+	mystats = (*leaguestats)[6]
 	return &mystats, nil
 }
 
