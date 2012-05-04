@@ -10,12 +10,12 @@ const (
 )
 
 type FO struct {
-	yc          *YahooClient
+	yahoo          *YahooClient
 	projections StatsClient
 }
 
-func NewFO(yc *YahooClient, projections StatsClient) *FO {
-	return &FO{yc: yc, projections: projections}
+func NewFO(yahoo *YahooClient, projections StatsClient) *FO {
+	return &FO{yahoo: yahoo, projections: projections}
 }
 
 func VerboseGetStat(player PlayerID, statname StatID, client StatsClient) {
@@ -43,51 +43,14 @@ func FormatPitchingStats(stats StatLine) string {
 		whip)
 }
 
-func (f *FO) Optimize() {
-//	response, err := f.yc.Get(
+func (fo *FO) Optimize() {
+//	response, err := f.yahoo.Get(
 //		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
 //	if (err != nil) { log.Fatal(err) }
 //	fmt.Println(response)
 
-	roster, err := f.yc.MyRoster()
-	if (err != nil) { log.Fatal(err) }
-
-	for i := range *roster {
-		name := (*roster)[i].FullName
-		pType := (*roster)[i].PositionType
-		stats := f.projections.GetStatLine(PlayerID(name))
-		if stats == nil {
-			fmt.Printf("Couldn't get stats for '%s'\n", name)
-		} else {
-			if (pType == "B") {
-				fmt.Printf("%30s [%s] -> %s\n", name, pType, FormatBattingStats(stats))
-			} else {
-				fmt.Printf("%30s [%s] -> %s\n", name, pType, FormatPitchingStats(stats))				
-			}
-		}
-	}
-
-	//	f.fc.FetchAllData()
-	//	if err != nil { log.Fatal(err) }
-
-	//	fmt.Println(data)
-	//	if data != "" {
-	//		fmt.Println("done")
-	//	}
-
-	//	stat, err := f.projections.GetStat(PlayerID{FirstName: "Albert", LastName: "Pujols"}, BATTING_AVG)
-//	VerboseGetStat(PlayerID("Albert Pujols"), B_BATTING_AVG, f.projections)
-//	VerboseGetStat(PlayerID("David Ortiz"), B_HOME_RUNS, f.projections)
-
-//	kinsler := PlayerID("Ian Kinsler")
-//	VerboseGetStat(kinsler, B_BATTING_AVG, f.projections)
-//	VerboseGetStat(kinsler, B_RUNS, f.projections)
-//	VerboseGetStat(kinsler, B_RUNS_BATTED_IN, f.projections)
-//	VerboseGetStat(kinsler, B_HOME_RUNS, f.projections)
-//	VerboseGetStat(kinsler, B_STOLEN_BASES, f.projections)
-
-	log.Print("Done")
-	fmt.Println("Done")
+	fo.myCurrentStats()
+//	fo.zipsProjectMyRoster()
 
 	// Full Docs:
 	// http://developer.yahoo.com/fantasysports/guide/index.html
@@ -100,6 +63,36 @@ func (f *FO) Optimize() {
 	//
 	// 10 Free Agents:
 	// "http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/players;status=FA;count=10",
+}
+
+func (fo *FO) myCurrentStats() {
+//	resp, err := fo.yahoo.Get(
+//		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/standings")
+//	if (err != nil) { log.Fatal(err) }
+//
+//	fmt.Println(resp)
+
+	fo.yahoo.MyStats()
+}
+
+func (fo *FO) zipsProjectMyRoster() {
+	roster, err := fo.yahoo.MyRoster()
+	if (err != nil) { log.Fatal(err) }
+
+	for i := range *roster {
+		name := (*roster)[i].FullName
+		pType := (*roster)[i].PositionType
+		stats := fo.projections.GetStatLine(PlayerID(name))
+		if stats == nil {
+			fmt.Printf("Couldn't get stats for '%s'\n", name)
+		} else {
+			if (pType == "B") {
+				fmt.Printf("%30s [%s] -> %s\n", name, pType, FormatBattingStats(stats))
+			} else {
+				fmt.Printf("%30s [%s] -> %s\n", name, pType, FormatPitchingStats(stats))				
+			}
+		}
+	}
 }
 
 // SimulateSeason

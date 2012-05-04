@@ -18,22 +18,22 @@ type YahooClient struct {
 
 type FantasyContent struct {
 	Team YahooTeam `xml:"team"`
-	rest string `,innerxml`
+	League YahooLeague `xml:"league"`
 }
 
 type YahooTeam struct {
-	Roster YahooRoster `xml:"roster"`
 	Name string `xml:"name"`
 	TeamKey string `xml:"team_key"`
 	TeamId string `xml:"team_id"`
+
+	Roster []YahooPlayer `xml:"roster>players>player"`
+
+	Stats []YahooTeamStats `xml:"team_stats>stats>stat"`
 }
 
-type YahooRoster struct {
-	Players []YahooPlayer `xml:"players>player"`
-}
-
-type YahooPlayers struct {
-	PlayerList []YahooPlayer `xml:"player"`
+type YahooTeamStats struct {
+	ID int `xml:"stat_id"`
+	Value string `xml:"value"`
 }
 
 type YahooPlayer struct {
@@ -41,6 +41,12 @@ type YahooPlayer struct {
 	FullName string `xml:"name>full"`
 	PositionType string `xml:"position_type"`
 	Position []string `xml:"eligible_positions>position"`
+}
+
+type YahooLeague struct {
+	Teams []YahooTeam `xml:"standings>teams>team"`
+	LeagueKey string `xml:"league_key"`
+	Id int `xml:"league_id"`
 }
 
 func (yc *YahooClient) MyRoster() (*[]YahooPlayer,error) {
@@ -55,8 +61,27 @@ func (yc *YahooClient) MyRoster() (*[]YahooPlayer,error) {
 	err = xml.Unmarshal([]byte(response), &data)
 	if err != nil { return nil, err }
 
-	return &data.Team.Roster.Players, nil
+	return &data.Team.Roster, nil
 }
+
+
+func (yc *YahooClient) MyStats() (*YahooTeamStats, error) {
+	response, err := yc.Get(
+		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/standings")
+
+	if err != nil { return nil, err }
+
+//	fmt.Println(response)
+
+	var data FantasyContent
+	err = xml.Unmarshal([]byte(response), &data)
+	if err != nil { return nil, err }
+
+	fmt.Printf("%+v \n", data)
+
+	return nil, nil
+}
+
 
 func NewYahooClient(consumerKey, consumerSecret, tokenFile string) *YahooClient {
 	return &YahooClient{

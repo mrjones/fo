@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/csv"
-	"fmt"
 	"os"
 	"strconv"
 )
@@ -130,7 +129,6 @@ func indexStats(filename string, columnNameToStat map[ColName]StatID) (*map[Play
 			}
 			statLine[stat] = Stat(stat64)
 		}
-		if (i < 5) { fmt.Printf("Indexing %s\n", recs[i][0]) }
 		statIndex[PlayerID(recs[i][0])] = statLine
 	}
 
