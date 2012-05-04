@@ -10,49 +10,47 @@ const (
 )
 
 type FO struct {
-	yc *YahooClient
-	fc *FangraphsClient
+	yc          *YahooClient
+	fc          *FangraphsClient
 	projections *ZipsClient
 }
-
 
 func NewFO(yc *YahooClient, fc *FangraphsClient, projections *ZipsClient) *FO {
 	return &FO{yc: yc, fc: fc, projections: projections}
 }
 
-func VerboseGetStat(player PlayerID, statname StatID, client *ZipsClient) {	
+func VerboseGetStat(player PlayerID, statname StatID, client *ZipsClient) {
 	statval := client.GetStat(player, statname)
 	log.Printf("%s, %v -> %f", player, statname, statval)
 }
 
 func (f *FO) Optimize() {
-//	response, err := f.yc.Get(
-//		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
-//	if (err != nil) { log.Fatal(err) }
-//	fmt.Println(response)
+	//	response, err := f.yc.Get(
+	//		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
+	//	if (err != nil) { log.Fatal(err) }
+	//	fmt.Println(response)
 
-//	f.fc.FetchAllData()
-//	if err != nil { log.Fatal(err) }
+	//	f.fc.FetchAllData()
+	//	if err != nil { log.Fatal(err) }
 
-//	fmt.Println(data)
-//	if data != "" {
-//		fmt.Println("done")
-//	}
+	//	fmt.Println(data)
+	//	if data != "" {
+	//		fmt.Println("done")
+	//	}
 
-//	stat, err := f.projections.GetStat(PlayerID{FirstName: "Albert", LastName: "Pujols"}, BATTING_AVG)
+	//	stat, err := f.projections.GetStat(PlayerID{FirstName: "Albert", LastName: "Pujols"}, BATTING_AVG)
 	VerboseGetStat(PlayerID("Albert Pujols"), B_BATTING_AVG, f.projections)
-VerboseGetStat(PlayerID("David Ortiz"), B_HOME_RUNS, f.projections)
+	VerboseGetStat(PlayerID("David Ortiz"), B_HOME_RUNS, f.projections)
 
-kinsler := PlayerID("Ian Kinsler")
+	kinsler := PlayerID("Ian Kinsler")
 	VerboseGetStat(kinsler, B_BATTING_AVG, f.projections)
 	VerboseGetStat(kinsler, B_RUNS, f.projections)
 	VerboseGetStat(kinsler, B_RUNS_BATTED_IN, f.projections)
 	VerboseGetStat(kinsler, B_HOME_RUNS, f.projections)
 	VerboseGetStat(kinsler, B_STOLEN_BASES, f.projections)
-	
 
-	log.Print("Done");
-	fmt.Println("Done");
+	log.Print("Done")
+	fmt.Println("Done")
 
 	// Full Docs:
 	// http://developer.yahoo.com/fantasysports/guide/index.html
@@ -66,7 +64,6 @@ kinsler := PlayerID("Ian Kinsler")
 	// 10 Free Agents:
 	// "http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/players;status=FA;count=10",
 }
-
 
 // SimulateSeason
 // - Fetch Current Stats

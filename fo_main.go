@@ -35,7 +35,6 @@ func main() {
 
 	flag.Parse()
 
-
 	if len(*consumerKey) == 0 || len(*consumerSecret) == 0 {
 		fmt.Println("You must set the --consumerkey and --consumersecret flags.")
 		fmt.Println("---")
@@ -46,8 +45,10 @@ func main() {
 	yahooclient := NewYahooClient(*consumerKey, *consumerSecret, *tokenFile)
 	fangraphsclient := NewFangraphsClient()
 	zipsclient, err := NewZipsClient()
-	if err != nil { log.Fatal(err) }
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	fo := NewFO(yahooclient, fangraphsclient, zipsclient);
+	fo := NewFO(yahooclient, fangraphsclient, zipsclient)
 	fo.Optimize()
 }
