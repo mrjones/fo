@@ -43,12 +43,11 @@ func main() {
 	}
 
 	yahooclient := NewYahooClient(*consumerKey, *consumerSecret, *tokenFile)
-	fangraphsclient := NewFangraphsClient()
 	zipsclient, err := NewZipsClient()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fo := NewFO(yahooclient, fangraphsclient, zipsclient)
+	fo := NewFO(yahooclient, zipsclient)
 	fo.Optimize()
 }

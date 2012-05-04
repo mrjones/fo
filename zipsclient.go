@@ -44,8 +44,12 @@ type ZipsClient struct {
 }
 
 func NewZipsClient() (*ZipsClient, error) {
-	get("http://www.baseballthinkfactory.org/szymborski/ZiPS2012v1BAT.csv", "zips2012batters.csv")
-	get("http://www.baseballthinkfactory.org/szymborski/ZiPS2012v1PIT.csv", "zips2012pitchers.csv")
+	EnsureCache(
+		"http://www.baseballthinkfactory.org/szymborski/ZiPS2012v1BAT.csv",
+		"zips2012batters.csv")
+	EnsureCache(
+		"http://www.baseballthinkfactory.org/szymborski/ZiPS2012v1PIT.csv",
+		"zips2012pitchers.csv")
 
 	battingStats, err := indexBattingStats()
 	if err != nil {

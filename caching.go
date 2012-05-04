@@ -8,32 +8,7 @@ import (
 	"time"
 )
 
-type FangraphsClient struct {
-}
-
-func NewFangraphsClient() *FangraphsClient {
-	return &FangraphsClient{}
-}
-
-func datasets() map[string]string {
-	return map[string]string{
-		"2012zips.bad.data": "http://www.fangraphs.com/projections.aspx?pos=all&stats=bat&type=zips&team=0&players=0",
-	}
-}
-
-func (f *FangraphsClient) FetchAllData() {
-	files := datasets()
-
-	for filename, url := range files {
-		get(url, filename)
-	}
-}
-
-//
-// Factor this out into an httpcache class?
-//
-
-func get(url, filename string) (string, error) {
+func EnsureCache(url, filename string) (string, error) {
 	age := fileAge(filename)
 
 	if age == nil {

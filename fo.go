@@ -11,12 +11,11 @@ const (
 
 type FO struct {
 	yc          *YahooClient
-	fc          *FangraphsClient
 	projections *ZipsClient
 }
 
-func NewFO(yc *YahooClient, fc *FangraphsClient, projections *ZipsClient) *FO {
-	return &FO{yc: yc, fc: fc, projections: projections}
+func NewFO(yc *YahooClient, projections *ZipsClient) *FO {
+	return &FO{yc: yc, projections: projections}
 }
 
 func VerboseGetStat(player PlayerID, statname StatID, client *ZipsClient) {
