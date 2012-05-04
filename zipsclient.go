@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -15,14 +16,18 @@ const (
 
 type ZipsClient struct {
 	battingStats *map[PlayerID]StatLine
+	pitchingStats *map[PlayerID]StatLine
 }
 
 func (zc *ZipsClient) GetStat(player PlayerID, stat StatID) Stat {
-	return (*zc.battingStats)[player][stat]
+	return zc.GetStatLine(player)[stat]
 }
 
 func (zc *ZipsClient) GetStatLine(player PlayerID) StatLine {
-	return (*zc.battingStats)[player]
+	statline, ok := (*zc.battingStats)[player]
+	if ok { return statline }
+
+	return (*zc.pitchingStats)[player]
 }
 
 func NewZipsClient() (*ZipsClient, error) {
@@ -32,10 +37,13 @@ func NewZipsClient() (*ZipsClient, error) {
 	battingStats, err := indexBattingStats()
 	if err != nil { return nil, err }
 
-	return &ZipsClient{battingStats: battingStats}, nil
+	pitchingStats, err := indexPitchingStats()
+	if err != nil { return nil, err }
+
+	return &ZipsClient{battingStats: battingStats, pitchingStats: pitchingStats}, nil
 }
 
-func mapColumnNameToStat() map[ColName]StatID {
+func mapColumnNameToBattingStat() map[ColName]StatID {
 	return map[ColName]StatID{
 		"AB":  B_AT_BATS,
 		"BA":  B_BATTING_AVG,
@@ -56,9 +64,26 @@ func mapColumnNameToStat() map[ColName]StatID {
 	}
 }
 
-func mapStatToColumnIndex(colNames []string) map[StatID]ColIndex {
+func mapColumnNameToPitchingStat() map[ColName]StatID {
+	return map[ColName]StatID{
+		"ER":  P_EARNED_RUNS,
+		"ERA":  P_EARNED_RUN_AVERAGE,
+		"G":  P_GAMES,
+		"H":  P_HITS,
+		"HR":   P_HOME_RUNS,
+		"IP":   P_INNINGS,
+		"L":  P_LOSSES,
+		"R": P_RUNS,
+		"GS":  P_STARTS,
+		"SO":   P_STRIKE_OUTS,
+		"BB": P_WALKS,
+		"W": P_WINS,
+	}
+}
+
+func mapBattingStatToColumnIndex(
+	  colNames []string, columnNameToStat map[ColName]StatID) map[StatID]ColIndex {
 	statToColumnIndex := map[StatID]ColIndex{}
-	columnNameToStat := mapColumnNameToStat()
 	for i := range colNames {
 		colName := ColName(colNames[i])
 		if statId, ok := columnNameToStat[colName]; ok {
@@ -70,19 +95,29 @@ func mapStatToColumnIndex(colNames []string) map[StatID]ColIndex {
 }
 
 func indexBattingStats() (*map[PlayerID]StatLine, error) {
-	f, err := os.Open(BATTERS_CSV)
+	return indexStats(BATTERS_CSV, mapColumnNameToBattingStat())
+}
+
+func indexPitchingStats() (*map[PlayerID]StatLine, error) {
+	return indexStats(PITCHERS_CSV, mapColumnNameToPitchingStat())
+}
+
+func indexStats(filename string, columnNameToStat map[ColName]StatID) (*map[PlayerID]StatLine, error) {
+	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	r := csv.NewReader(f)
+	r.TrailingComma = true // Ok to end in trailing comma
 	recs, err := r.ReadAll()
 
 	if err != nil {
 		return nil, err
 	}
 
-	statToColumnIndex := mapStatToColumnIndex(recs[0])
+	statToColumnIndex := mapBattingStatToColumnIndex(recs[0], columnNameToStat)
 
 	statIndex := map[PlayerID]StatLine{}
 	for i := 1; i < len(recs); i++ {
@@ -95,6 +130,7 @@ func indexBattingStats() (*map[PlayerID]StatLine, error) {
 			}
 			statLine[stat] = Stat(stat64)
 		}
+		if (i < 5) { fmt.Printf("Indexing %s\n", recs[i][0]) }
 		statIndex[PlayerID(recs[i][0])] = statLine
 	}
 

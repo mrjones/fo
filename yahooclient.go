@@ -39,6 +39,8 @@ type YahooPlayers struct {
 type YahooPlayer struct {
 	Key string `xml:"player_key"`
 	FullName string `xml:"name>full"`
+	PositionType string `xml:"position_type"`
+	Position []string `xml:"eligible_positions>position"`
 }
 
 func (yc *YahooClient) MyRoster() (*[]YahooPlayer,error) {

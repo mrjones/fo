@@ -25,6 +25,19 @@ const (
 	B_STRIKE_OUTS     StatID = 14
 	B_TRIPLES         StatID = 15
 	B_WALKS           StatID = 16
+
+	P_EARNED_RUNS StatID = 1001
+	P_EARNED_RUN_AVERAGE StatID = 1002
+	P_GAMES StatID = 1003
+	P_HITS StatID = 1004
+	P_HOME_RUNS StatID = 1005
+	P_INNINGS StatID = 1006
+	P_LOSSES StatID = 1007
+	P_RUNS StatID = 1008
+	P_STARTS StatID = 1009
+	P_STRIKE_OUTS StatID = 1010
+	P_WALKS StatID = 1011
+	P_WINS StatID = 1012
 )
 
 type StatsClient interface {

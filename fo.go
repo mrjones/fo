@@ -32,6 +32,17 @@ func FormatBattingStats(stats StatLine) string {
 		int(stats[B_STOLEN_BASES]))
 }
 
+func FormatPitchingStats(stats StatLine) string {
+	whip := (stats[P_WALKS] + stats[P_HITS]) / stats[P_INNINGS]
+
+	return fmt.Sprintf("W:%02d S:%02d K:%03d ERA:%0.2f WHIP:%0.2f",
+		int(stats[P_WINS]),
+		0, // TODO: saves
+		int(stats[P_STRIKE_OUTS]),
+		stats[P_EARNED_RUN_AVERAGE],
+		whip)
+}
+
 func (f *FO) Optimize() {
 //	response, err := f.yc.Get(
 //		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
@@ -43,11 +54,16 @@ func (f *FO) Optimize() {
 
 	for i := range *roster {
 		name := (*roster)[i].FullName
+		pType := (*roster)[i].PositionType
 		stats := f.projections.GetStatLine(PlayerID(name))
 		if stats == nil {
 			fmt.Printf("Couldn't get stats for '%s'\n", name)
 		} else {
-			fmt.Printf("%30s -> %s\n", name, FormatBattingStats(stats))
+			if (pType == "B") {
+				fmt.Printf("%30s [%s] -> %s\n", name, pType, FormatBattingStats(stats))
+			} else {
+				fmt.Printf("%30s [%s] -> %s\n", name, pType, FormatPitchingStats(stats))				
+			}
 		}
 	}
 
