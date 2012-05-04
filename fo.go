@@ -50,7 +50,8 @@ func (fo *FO) Optimize() {
 //	fmt.Println(response)
 
 	fo.zipsProjectMyRoster()
-	fo.myCurrentStats()
+//	fo.myCurrentStats()
+	fo.leagueStats()
 
 	// Full Docs:
 	// http://developer.yahoo.com/fantasysports/guide/index.html
@@ -66,16 +67,19 @@ func (fo *FO) Optimize() {
 }
 
 func (fo *FO) myCurrentStats() {
-//	resp, err := fo.yahoo.Get(
-//		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/standings")
-//	if (err != nil) { log.Fatal(err) }
-//
-//	fmt.Println(resp)
-
 	mystats, err := fo.yahoo.MyStats()
 	if err != nil { log.Fatal(err) }
 
 	fmt.Printf("%s\n%s\n", FormatBattingStats(*mystats), FormatPitchingStats(*mystats))
+}
+
+func (fo *FO) leagueStats() {
+	leaguestats, err := fo.yahoo.CurrentStats()
+	if err != nil { log.Fatal(err) }
+
+	for id, statline := range(*leaguestats) {
+		fmt.Printf("%2d -> %s / %s\n", id, FormatBattingStats(statline), FormatPitchingStats(statline))
+	}
 }
 
 func (fo *FO) zipsProjectMyRoster() {

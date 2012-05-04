@@ -116,7 +116,7 @@ func (yc *YahooClient) CurrentStats() (*map[int]StatLine, error) {
 func (yc *YahooClient) MyStats() (*StatLine, error) {
 	leaguestats, err := yc.CurrentStats()
 	if err != nil { return nil, err}
-	mystats = (*leaguestats)[6]
+	mystats := (*leaguestats)[6]
 	return &mystats, nil
 }
 
