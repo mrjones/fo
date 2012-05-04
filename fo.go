@@ -33,7 +33,10 @@ func FormatBattingStats(stats StatLine) string {
 }
 
 func FormatPitchingStats(stats StatLine) string {
-	whip := (stats[P_WALKS] + stats[P_HITS]) / stats[P_INNINGS]
+	whip, ok := stats[P_WHIP]
+	if !ok {
+		whip = (stats[P_WALKS] + stats[P_HITS]) / stats[P_INNINGS]
+	}
 
 	return fmt.Sprintf("W:%02d S:%02d K:%03d ERA:%0.2f WHIP:%0.2f",
 		int(stats[P_WINS]),
@@ -44,14 +47,17 @@ func FormatPitchingStats(stats StatLine) string {
 }
 
 func (fo *FO) Optimize() {
-//	response, err := f.yahoo.Get(
-//		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
-//	if (err != nil) { log.Fatal(err) }
-//	fmt.Println(response)
-
-	fo.zipsProjectMyRoster()
+//	fo.zipsProjectMyRoster()
 //	fo.myCurrentStats()
-	fo.leagueStats()
+//	fo.leagueStats()
+
+	rosters, err := fo.yahoo.LeagueRosters()
+	if err != nil { log.Fatal(err) }
+
+	for i := range(*rosters) {
+		fmt.Printf("TEAM %d\n", i)
+		fo.projectRoster((*rosters)[i], .9)
+	}
 
 	// Full Docs:
 	// http://developer.yahoo.com/fantasysports/guide/index.html
@@ -64,6 +70,19 @@ func (fo *FO) Optimize() {
 	//
 	// 10 Free Agents:
 	// "http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/players;status=FA;count=10",
+}
+
+func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) {
+	for i := range(roster) {
+		player := roster[i]
+		stats := fo.projections.GetStatLine(PlayerID(player.FullName))
+		
+		if (player.PositionType == "B") {
+			fmt.Printf("%30s -> %s\n", player.FullName, FormatBattingStats(stats))
+		} else {
+			fmt.Printf("%30s -> %s\n", player.FullName, FormatPitchingStats(stats))				
+		}
+	}
 }
 
 func (fo *FO) myCurrentStats() {

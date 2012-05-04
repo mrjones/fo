@@ -45,8 +45,29 @@ type YahooPlayer struct {
 
 type YahooLeague struct {
 	Teams []YahooTeam `xml:"standings>teams>team"`
+	Teams2 []YahooTeam `xml:"teams>team"`  // OMG :(
 	LeagueKey string `xml:"league_key"`
 	Id int `xml:"league_id"`
+}
+
+func (yc *YahooClient) LeagueRosters() (*map[int][]YahooPlayer, error) {
+	response, err := yc.Get(
+		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/teams/roster")
+	if err != nil { return nil, err }
+
+//	fmt.Println(response)
+
+	var data FantasyContent
+	err = xml.Unmarshal([]byte(response), &data)
+	if err != nil { return nil, err }
+
+	rosters := map[int][]YahooPlayer{}
+	for i := range(data.League.Teams2) {
+		team := data.League.Teams2[i]
+		rosters[team.TeamId] = team.Roster
+	}
+
+	return &rosters, nil
 }
 
 func (yc *YahooClient) MyRoster() (*[]YahooPlayer,error) {
