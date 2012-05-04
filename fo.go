@@ -19,10 +19,15 @@ func NewFO(yc *YahooClient, fc *FangraphsClient) *FO {
 }
 
 func (f *FO) Optimize() {
-	response, err := f.yc.Get(
-		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
-	if (err != nil) { log.Fatal(err) }
-	fmt.Println(response)
+//	response, err := f.yc.Get(
+//		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
+//	if (err != nil) { log.Fatal(err) }
+//	fmt.Println(response)
+
+	data, err := f.fc.GetZipsProjections()
+	if err != nil { log.Fatal(err) }
+
+	fmt.Println(data)
 
 	// Full Docs:
 	// http://developer.yahoo.com/fantasysports/guide/index.html
