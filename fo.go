@@ -5,11 +5,16 @@ import (
 	"log"
 )
 
+const (
+	LEAGUE_ID = 5181
+)
+
 type FO struct {
 	yc *YahooClient
+	fc *FangraphsClient
 }
 
-func NewFO(yc *YahooClient) *FO {
+func NewFO(yc *YahooClient, fc *FangraphsClient) *FO {
 	return &FO{yc: yc}
 }
 

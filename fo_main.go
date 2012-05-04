@@ -42,9 +42,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	client := NewYahooClient(*consumerKey, *consumerSecret, *tokenFile)
+	yahooclient := NewYahooClient(*consumerKey, *consumerSecret, *tokenFile)
+	fangraphsclient := NewFangraphsClient()
 
-
-	fo := NewFO(client);
+	fo := NewFO(yahooclient, fangraphsclient);
 	fo.Optimize()
 }
