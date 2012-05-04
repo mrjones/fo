@@ -10,7 +10,7 @@ const (
 )
 
 type FO struct {
-	yahoo          *YahooClient
+	yahoo       *YahooClient
 	projections StatsClient
 }
 
@@ -47,14 +47,16 @@ func FormatPitchingStats(stats StatLine) string {
 }
 
 func (fo *FO) Optimize() {
-//	fo.zipsProjectMyRoster()
-//	fo.myCurrentStats()
-//	fo.leagueStats()
+	//	fo.zipsProjectMyRoster()
+	//	fo.myCurrentStats()
+	//	fo.leagueStats()
 
 	rosters, err := fo.yahoo.LeagueRosters()
-	if err != nil { log.Fatal(err) }
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	for i := range(*rosters) {
+	for i := range *rosters {
 		fmt.Printf("TEAM %d\n", i)
 		fo.projectRoster((*rosters)[i], .9)
 	}
@@ -73,37 +75,43 @@ func (fo *FO) Optimize() {
 }
 
 func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) {
-	for i := range(roster) {
+	for i := range roster {
 		player := roster[i]
 		stats := fo.projections.GetStatLine(PlayerID(player.FullName))
-		
-		if (player.PositionType == "B") {
+
+		if player.PositionType == "B" {
 			fmt.Printf("%30s -> %s\n", player.FullName, FormatBattingStats(stats))
 		} else {
-			fmt.Printf("%30s -> %s\n", player.FullName, FormatPitchingStats(stats))				
+			fmt.Printf("%30s -> %s\n", player.FullName, FormatPitchingStats(stats))
 		}
 	}
 }
 
 func (fo *FO) myCurrentStats() {
 	mystats, err := fo.yahoo.MyStats()
-	if err != nil { log.Fatal(err) }
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Printf("%s\n%s\n", FormatBattingStats(*mystats), FormatPitchingStats(*mystats))
 }
 
 func (fo *FO) leagueStats() {
 	leaguestats, err := fo.yahoo.CurrentStats()
-	if err != nil { log.Fatal(err) }
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	for id, statline := range(*leaguestats) {
+	for id, statline := range *leaguestats {
 		fmt.Printf("%2d -> %s / %s\n", id, FormatBattingStats(statline), FormatPitchingStats(statline))
 	}
 }
 
 func (fo *FO) zipsProjectMyRoster() {
 	roster, err := fo.yahoo.MyRoster()
-	if (err != nil) { log.Fatal(err) }
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	for i := range *roster {
 		name := (*roster)[i].FullName
@@ -112,10 +120,10 @@ func (fo *FO) zipsProjectMyRoster() {
 		if stats == nil {
 			fmt.Printf("Couldn't get stats for '%s'\n", name)
 		} else {
-			if (pType == "B") {
+			if pType == "B" {
 				fmt.Printf("%30s [%s] -> %s\n", name, pType, FormatBattingStats(stats))
 			} else {
-				fmt.Printf("%30s [%s] -> %s\n", name, pType, FormatPitchingStats(stats))				
+				fmt.Printf("%30s [%s] -> %s\n", name, pType, FormatPitchingStats(stats))
 			}
 		}
 	}

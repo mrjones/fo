@@ -26,23 +26,23 @@ const (
 	B_TRIPLES         StatID = 15
 	B_WALKS           StatID = 16
 
-	P_EARNED_RUNS StatID = 1001
+	P_EARNED_RUNS        StatID = 1001
 	P_EARNED_RUN_AVERAGE StatID = 1002
-	P_GAMES StatID = 1003
-	P_HITS StatID = 1004
-	P_HOME_RUNS StatID = 1005
-	P_INNINGS StatID = 1006
-	P_LOSSES StatID = 1007
-	P_RUNS StatID = 1008
-	P_SAVES StatID = 1009
-	P_STARTS StatID = 1010
-	P_STRIKE_OUTS StatID = 1011
-	P_WALKS StatID = 1012
-	P_WHIP StatID = 1013
-	P_WINS StatID = 1014
+	P_GAMES              StatID = 1003
+	P_HITS               StatID = 1004
+	P_HOME_RUNS          StatID = 1005
+	P_INNINGS            StatID = 1006
+	P_LOSSES             StatID = 1007
+	P_RUNS               StatID = 1008
+	P_SAVES              StatID = 1009
+	P_STARTS             StatID = 1010
+	P_STRIKE_OUTS        StatID = 1011
+	P_WALKS              StatID = 1012
+	P_WHIP               StatID = 1013
+	P_WINS               StatID = 1014
 )
 
 type StatsClient interface {
-	GetStat(player PlayerID, stat StatID) Stat;
-	GetStatLine(player PlayerID) StatLine;
+	GetStat(player PlayerID, stat StatID) Stat
+	GetStatLine(player PlayerID) StatLine
 }

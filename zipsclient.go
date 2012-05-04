@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	BATTERS_URL = "http://www.baseballthinkfactory.org/szymborski/ZiPS2012v1BAT.csv"
-	BATTERS_CSV = "zips2012batters.csv"
+	BATTERS_URL  = "http://www.baseballthinkfactory.org/szymborski/ZiPS2012v1BAT.csv"
+	BATTERS_CSV  = "zips2012batters.csv"
 	PITCHERS_URL = "http://www.baseballthinkfactory.org/szymborski/ZiPS2012v1PIT.csv"
 	PITCHERS_CSV = "zips2012pitchers.csv"
 )
 
 type ZipsClient struct {
-	battingStats *map[PlayerID]StatLine
+	battingStats  *map[PlayerID]StatLine
 	pitchingStats *map[PlayerID]StatLine
 }
 
@@ -24,7 +24,9 @@ func (zc *ZipsClient) GetStat(player PlayerID, stat StatID) Stat {
 
 func (zc *ZipsClient) GetStatLine(player PlayerID) StatLine {
 	statline, ok := (*zc.battingStats)[player]
-	if ok { return statline }
+	if ok {
+		return statline
+	}
 
 	return (*zc.pitchingStats)[player]
 }
@@ -34,10 +36,14 @@ func NewZipsClient() (*ZipsClient, error) {
 	EnsureCache(PITCHERS_URL, PITCHERS_CSV)
 
 	battingStats, err := indexBattingStats()
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	pitchingStats, err := indexPitchingStats()
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	return &ZipsClient{battingStats: battingStats, pitchingStats: pitchingStats}, nil
 }
@@ -66,22 +72,22 @@ func mapColumnNameToBattingStat() map[ColName]StatID {
 func mapColumnNameToPitchingStat() map[ColName]StatID {
 	return map[ColName]StatID{
 		"ER":  P_EARNED_RUNS,
-		"ERA":  P_EARNED_RUN_AVERAGE,
-		"G":  P_GAMES,
-		"H":  P_HITS,
-		"HR":   P_HOME_RUNS,
-		"IP":   P_INNINGS,
-		"L":  P_LOSSES,
-		"R": P_RUNS,
+		"ERA": P_EARNED_RUN_AVERAGE,
+		"G":   P_GAMES,
+		"H":   P_HITS,
+		"HR":  P_HOME_RUNS,
+		"IP":  P_INNINGS,
+		"L":   P_LOSSES,
+		"R":   P_RUNS,
 		"GS":  P_STARTS,
-		"SO":   P_STRIKE_OUTS,
-		"BB": P_WALKS,
-		"W": P_WINS,
+		"SO":  P_STRIKE_OUTS,
+		"BB":  P_WALKS,
+		"W":   P_WINS,
 	}
 }
 
 func mapBattingStatToColumnIndex(
-	  colNames []string, columnNameToStat map[ColName]StatID) map[StatID]ColIndex {
+	colNames []string, columnNameToStat map[ColName]StatID) map[StatID]ColIndex {
 	statToColumnIndex := map[StatID]ColIndex{}
 	for i := range colNames {
 		colName := ColName(colNames[i])

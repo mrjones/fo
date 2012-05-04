@@ -15,16 +15,15 @@ type YahooClient struct {
 	oauth     *oauth.Consumer
 }
 
-
 type FantasyContent struct {
-	Team YahooTeam `xml:"team"`
+	Team   YahooTeam   `xml:"team"`
 	League YahooLeague `xml:"league"`
 }
 
 type YahooTeam struct {
-	Name string `xml:"name"`
+	Name    string `xml:"name"`
 	TeamKey string `xml:"team_key"`
-	TeamId int `xml:"team_id"`
+	TeamId  int    `xml:"team_id"`
 
 	Roster []YahooPlayer `xml:"roster>players>player"`
 
@@ -32,37 +31,41 @@ type YahooTeam struct {
 }
 
 type YahooTeamStats struct {
-	ID int `xml:"stat_id"`
+	ID    int    `xml:"stat_id"`
 	Value string `xml:"value"`
 }
 
 type YahooPlayer struct {
-	Key string `xml:"player_key"`
-	FullName string `xml:"name>full"`
-	PositionType string `xml:"position_type"`
-	Position []string `xml:"eligible_positions>position"`
+	Key          string   `xml:"player_key"`
+	FullName     string   `xml:"name>full"`
+	PositionType string   `xml:"position_type"`
+	Position     []string `xml:"eligible_positions>position"`
 }
 
 type YahooLeague struct {
-	Teams []YahooTeam `xml:"standings>teams>team"`
-	Teams2 []YahooTeam `xml:"teams>team"`  // OMG :(
-	LeagueKey string `xml:"league_key"`
-	Id int `xml:"league_id"`
+	Teams     []YahooTeam `xml:"standings>teams>team"`
+	Teams2    []YahooTeam `xml:"teams>team"` // OMG :(
+	LeagueKey string      `xml:"league_key"`
+	Id        int         `xml:"league_id"`
 }
 
 func (yc *YahooClient) LeagueRosters() (*map[int][]YahooPlayer, error) {
 	response, err := yc.Get(
 		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/teams/roster")
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
-//	fmt.Println(response)
+	//	fmt.Println(response)
 
 	var data FantasyContent
 	err = xml.Unmarshal([]byte(response), &data)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	rosters := map[int][]YahooPlayer{}
-	for i := range(data.League.Teams2) {
+	for i := range data.League.Teams2 {
 		team := data.League.Teams2[i]
 		rosters[team.TeamId] = team.Roster
 	}
@@ -70,34 +73,38 @@ func (yc *YahooClient) LeagueRosters() (*map[int][]YahooPlayer, error) {
 	return &rosters, nil
 }
 
-func (yc *YahooClient) MyRoster() (*[]YahooPlayer,error) {
+func (yc *YahooClient) MyRoster() (*[]YahooPlayer, error) {
 	response, err := yc.Get(
 		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
 
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
-//	fmt.Println(response)
+	//	fmt.Println(response)
 
 	var data FantasyContent
 	err = xml.Unmarshal([]byte(response), &data)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	return &data.Team.Roster, nil
 }
 
 func mapYahooIdToStatId() map[int]StatID {
-	return map[int]StatID {
-	7: B_RUNS,
-	12: B_HOME_RUNS,
-	13: B_RUNS_BATTED_IN,
-	16: B_STOLEN_BASES,
-	3: B_BATTING_AVG,
-	50: P_INNINGS,
-	28: P_WINS,
-	32: P_SAVES,
-	42: P_STRIKE_OUTS,
-	26: P_EARNED_RUN_AVERAGE,
-	27: P_WHIP,
+	return map[int]StatID{
+		7:  B_RUNS,
+		12: B_HOME_RUNS,
+		13: B_RUNS_BATTED_IN,
+		16: B_STOLEN_BASES,
+		3:  B_BATTING_AVG,
+		50: P_INNINGS,
+		28: P_WINS,
+		32: P_SAVES,
+		42: P_STRIKE_OUTS,
+		26: P_EARNED_RUN_AVERAGE,
+		27: P_WHIP,
 	}
 }
 
@@ -105,27 +112,33 @@ func (yc *YahooClient) CurrentStats() (*map[int]StatLine, error) {
 	response, err := yc.Get(
 		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/standings")
 
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
-//	fmt.Println(response)
+	//	fmt.Println(response)
 
 	var data FantasyContent
 	err = xml.Unmarshal([]byte(response), &data)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	yahooIdToStatIdMap := mapYahooIdToStatId()
 
 	teamstats := map[int]StatLine{}
 
-	for i := range(data.League.Teams) {
+	for i := range data.League.Teams {
 		team := data.League.Teams[i]
 		statline := make(StatLine)
-		for j := range(team.Stats) {
+		for j := range team.Stats {
 			stat := team.Stats[j]
 			statid, ok := yahooIdToStatIdMap[stat.ID]
 			if ok {
 				statval, err := strconv.ParseFloat(stat.Value, 64)
-				if err != nil { return nil, err }
+				if err != nil {
+					return nil, err
+				}
 				statline[statid] = Stat(statval)
 			}
 		}
@@ -136,11 +149,12 @@ func (yc *YahooClient) CurrentStats() (*map[int]StatLine, error) {
 
 func (yc *YahooClient) MyStats() (*StatLine, error) {
 	leaguestats, err := yc.CurrentStats()
-	if err != nil { return nil, err}
+	if err != nil {
+		return nil, err
+	}
 	mystats := (*leaguestats)[6]
 	return &mystats, nil
 }
-
 
 func NewYahooClient(consumerKey, consumerSecret, tokenFile string) *YahooClient {
 	return &YahooClient{
