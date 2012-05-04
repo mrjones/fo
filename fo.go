@@ -11,14 +11,14 @@ const (
 
 type FO struct {
 	yc          *YahooClient
-	projections *StatClient
+	projections StatsClient
 }
 
 func NewFO(yc *YahooClient, projections *ZipsClient) *FO {
 	return &FO{yc: yc, projections: projections}
 }
 
-func VerboseGetStat(player PlayerID, statname StatID, client *ZipsClient) {
+func VerboseGetStat(player PlayerID, statname StatID, client StatsClient) {
 	statval := client.GetStat(player, statname)
 	log.Printf("%s, %v -> %f", player, statname, statval)
 }
