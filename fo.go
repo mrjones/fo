@@ -11,7 +11,7 @@ const (
 
 type FO struct {
 	yc          *YahooClient
-	projections *ZipsClient
+	projections *StatClient
 }
 
 func NewFO(yc *YahooClient, projections *ZipsClient) *FO {

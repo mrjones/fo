@@ -26,3 +26,8 @@ const (
 	B_TRIPLES         StatID = 15
 	B_WALKS           StatID = 16
 )
+
+type StatsClient interface {
+	GetStat(player PlayerID, stat StatID) Stat;
+	GetStatLine(player PlayerID) StatLine;
+}
