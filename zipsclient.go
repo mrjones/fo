@@ -6,6 +6,13 @@ import (
 	"strconv"
 )
 
+const (
+	BATTERS_URL = "http://www.baseballthinkfactory.org/szymborski/ZiPS2012v1BAT.csv"
+	BATTERS_CSV = "zips2012batters.csv"
+	PITCHERS_URL = "http://www.baseballthinkfactory.org/szymborski/ZiPS2012v1PIT.csv"
+	PITCHERS_CSV = "zips2012pitchers.csv"
+)
+
 type ZipsClient struct {
 	battingStats *map[PlayerID]StatLine
 }
@@ -19,17 +26,11 @@ func (zc *ZipsClient) GetStatLine(player PlayerID) StatLine {
 }
 
 func NewZipsClient() (*ZipsClient, error) {
-	EnsureCache(
-		"http://www.baseballthinkfactory.org/szymborski/ZiPS2012v1BAT.csv",
-		"zips2012batters.csv")
-	EnsureCache(
-		"http://www.baseballthinkfactory.org/szymborski/ZiPS2012v1PIT.csv",
-		"zips2012pitchers.csv")
+	EnsureCache(BATTERS_URL, BATTERS_CSV)
+	EnsureCache(PITCHERS_URL, PITCHERS_CSV)
 
 	battingStats, err := indexBattingStats()
-	if err != nil {
-		return nil, err
-	}
+	if err != nil { return nil, err }
 
 	return &ZipsClient{battingStats: battingStats}, nil
 }
@@ -69,7 +70,7 @@ func mapStatToColumnIndex(colNames []string) map[StatID]ColIndex {
 }
 
 func indexBattingStats() (*map[PlayerID]StatLine, error) {
-	f, err := os.Open("zips2012batters.csv")
+	f, err := os.Open(BATTERS_CSV)
 	if err != nil {
 		return nil, err
 	}

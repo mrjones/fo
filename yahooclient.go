@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -12,6 +13,47 @@ import (
 type YahooClient struct {
 	tokenFile string
 	oauth     *oauth.Consumer
+}
+
+
+type FantasyContent struct {
+	Team YahooTeam `xml:"team"`
+	rest string `,innerxml`
+}
+
+type YahooTeam struct {
+	Roster YahooRoster `xml:"roster"`
+	Name string `xml:"name"`
+	TeamKey string `xml:"team_key"`
+	TeamId string `xml:"team_id"`
+}
+
+type YahooRoster struct {
+	Players []YahooPlayer `xml:"players>player"`
+}
+
+type YahooPlayers struct {
+	PlayerList []YahooPlayer `xml:"player"`
+}
+
+type YahooPlayer struct {
+	Key string `xml:"player_key"`
+	FullName string `xml:"name>full"`
+}
+
+func (yc *YahooClient) MyRoster() (*[]YahooPlayer,error) {
+	response, err := yc.Get(
+		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
+
+	if err != nil { return nil, err }
+
+//	fmt.Println(response)
+
+	var data FantasyContent
+	err = xml.Unmarshal([]byte(response), &data)
+	if err != nil { return nil, err }
+
+	return &data.Team.Roster.Players, nil
 }
 
 func NewYahooClient(consumerKey, consumerSecret, tokenFile string) *YahooClient {
