@@ -49,8 +49,8 @@ func (fo *FO) Optimize() {
 //	if (err != nil) { log.Fatal(err) }
 //	fmt.Println(response)
 
+	fo.zipsProjectMyRoster()
 	fo.myCurrentStats()
-//	fo.zipsProjectMyRoster()
 
 	// Full Docs:
 	// http://developer.yahoo.com/fantasysports/guide/index.html
@@ -72,7 +72,10 @@ func (fo *FO) myCurrentStats() {
 //
 //	fmt.Println(resp)
 
-	fo.yahoo.MyStats()
+	mystats, err := fo.yahoo.MyStats()
+	if err != nil { log.Fatal(err) }
+
+	fmt.Printf("%s\n%s\n", FormatBattingStats(*mystats), FormatPitchingStats(*mystats))
 }
 
 func (fo *FO) zipsProjectMyRoster() {

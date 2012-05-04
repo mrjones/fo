@@ -34,10 +34,12 @@ const (
 	P_INNINGS StatID = 1006
 	P_LOSSES StatID = 1007
 	P_RUNS StatID = 1008
-	P_STARTS StatID = 1009
-	P_STRIKE_OUTS StatID = 1010
-	P_WALKS StatID = 1011
-	P_WINS StatID = 1012
+	P_SAVES StatID = 1009
+	P_STARTS StatID = 1010
+	P_STRIKE_OUTS StatID = 1011
+	P_WALKS StatID = 1012
+	P_WHIP StatID = 1013
+	P_WINS StatID = 1014
 )
 
 type StatsClient interface {
