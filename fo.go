@@ -19,84 +19,36 @@ func NewFO(yahoo *YahooClient, projections StatsClient) *FO {
 	return &FO{yahoo: yahoo, projections: projections}
 }
 
-func VerboseGetStat(player PlayerID, statname StatID, client StatsClient) {
-	statval := client.GetStat(player, statname)
-	log.Printf("%s, %v -> %f", player, statname, statval)
-}
-
 func (fo *FO) Optimize() {
-	//	fo.zipsProjectMyRoster()
-	//	fo.myCurrentStats()
-	//	fo.leagueStats()
-
 	rosters, err := fo.yahoo.LeagueRosters()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for i := range *rosters {
-		fmt.Printf("TEAM %d\n", i)
-		starters := fo.selectStarters((*rosters)[i])
-		for pos := range(starters) {
-			fmt.Printf("%s ->  %v\n", pos, starters[pos])
-		}
-	}
+	if err != nil { log.Fatal(err) }
 
 	teamStats, err := fo.yahoo.CurrentStats()
-	if err != nil {
-		log.Fatal(err)
-	}
+	if err != nil { log.Fatal(err) }
+
 	teamProjections := make(map[TeamID]StatLine)
-
 	for i := range *rosters {
-		fmt.Printf("TEAM %d\n", i)
-		totals := fo.projectRoster((*rosters)[i], .9)
-		teamProjections[i] = totals
-
-		fmt.Printf("CURRENT: %s\nPROJECTED:%s\nCURRENT: %s\nPROJECTED: %s\n\n",
-			FormatBattingStats((*teamStats)[i]),
-			FormatBattingStats(teamProjections[i]),
-			FormatPitchingStats((*teamStats)[i]),
-			FormatPitchingStats(teamProjections[i]))
+		teamProjections[i] = fo.projectRoster((*rosters)[i], .9)
 	}
-
 
 	fmt.Printf("Projections\n")
-	scores := score(teamProjections)
-	print(scores)
+	printScores(score(teamProjections))
 
 	fmt.Printf("\nActuals\n")
-	scores = score(*teamStats)
-	print(scores)
-
-
-	// Full Docs:
-	// http://developer.yahoo.com/fantasysports/guide/index.html
-	//
-	// League standings: 
-	// "http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/standings",
-	//
-	// Team Roster:
-	// "http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster",
-	//
-	// 10 Free Agents:
-	// "http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/players;status=FA;count=10",
+	printScores(score(*teamStats))
 }
 
 func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) StatLine {
 	starterStats := make([]StatLine, 0)
-	
 
-	for i := range roster {
-		player := roster[i]
-		stats := fo.projections.GetStatLine(PlayerID(player.FullName))
-		starterStats = append(starterStats, stats)
+	starters := fo.selectStarters(roster)	
 
-//		if player.PositionType == "B" {
-//			fmt.Printf("%30s -> %s\n", player.FullName, FormatBattingStats(stats))
-//		} else {
-//			fmt.Printf("%30s -> %s\n", player.FullName, FormatPitchingStats(stats))
-//		}
+	for pos := range(starters) {
+		for play := range(starters[pos]) {
+			player := starters[pos][play]
+			stats := fo.projections.GetStatLine(PlayerID(player.FullName))
+			starterStats = append(starterStats, stats)
+		}
 	}
 
 	return merge(starterStats)
@@ -138,48 +90,6 @@ func score(stats map[TeamID]StatLine) map[TeamID]int {
 	}
 
 	return scores
-}
-
-func (fo *FO) myCurrentStats() {
-	mystats, err := fo.yahoo.MyStats()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("%s\n%s\n", FormatBattingStats(*mystats), FormatPitchingStats(*mystats))
-}
-
-func (fo *FO) leagueStats() {
-	leaguestats, err := fo.yahoo.CurrentStats()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for id, statline := range *leaguestats {
-		fmt.Printf("%2d -> %s / %s\n", id, FormatBattingStats(statline), FormatPitchingStats(statline))
-	}
-}
-
-func (fo *FO) zipsProjectMyRoster() {
-	roster, err := fo.yahoo.MyRoster()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for i := range *roster {
-		name := (*roster)[i].FullName
-		pType := (*roster)[i].PositionType
-		stats := fo.projections.GetStatLine(PlayerID(name))
-		if stats == nil {
-			fmt.Printf("Couldn't get stats for '%s'\n", name)
-		} else {
-			if pType == "B" {
-				fmt.Printf("%30s [%s] -> %s\n", name, pType, FormatBattingStats(stats))
-			} else {
-				fmt.Printf("%30s [%s] -> %s\n", name, pType, FormatPitchingStats(stats))
-			}
-		}
-	}
 }
 
 func (fo *FO) selectStarters(roster []YahooPlayer) map[Position][]YahooPlayer {
