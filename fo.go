@@ -58,8 +58,16 @@ func (fo *FO) Optimize() {
 
 	for i := range *rosters {
 		fmt.Printf("TEAM %d\n", i)
-		fo.projectRoster((*rosters)[i], .9)
+		starters := fo.selectStarters((*rosters)[i])
+		for pos := range(starters) {
+			fmt.Printf("%s ->  %v\n", pos, starters[pos])
+		}
 	}
+
+//	for i := range *rosters {
+//		fmt.Printf("TEAM %d\n", i)
+//		fo.projectRoster((*rosters)[i], .9)
+//	}
 
 	// Full Docs:
 	// http://developer.yahoo.com/fantasysports/guide/index.html
@@ -126,6 +134,40 @@ func (fo *FO) zipsProjectMyRoster() {
 				fmt.Printf("%30s [%s] -> %s\n", name, pType, FormatPitchingStats(stats))
 			}
 		}
+	}
+}
+
+func (fo *FO) selectStarters(roster []YahooPlayer) map[Position][]YahooPlayer {
+	positionCounts := rosterTopology()
+	starters := make(map[Position][]YahooPlayer)
+	
+	for i := range(roster) {
+		for j := range(roster[i].Position) {
+			pos := Position(roster[i].Position[j])
+			if positionCounts[pos] > 0 {
+				starters[pos] = append(starters[pos], roster[i])
+				positionCounts[pos]--
+			}
+			break
+		}
+	}
+	return starters
+}
+
+type Position string
+
+func rosterTopology() map[Position]int {
+	return map[Position]int {
+		"C" : 1,
+		"1B" : 1,
+		"2B" : 1,
+		"3B" : 1,
+		"SS" : 1,
+		"OF" : 3,
+		"Util" : 3,
+		"SP" : 4,
+		"RP" : 2,
+		"P" : 2,
 	}
 }
 
