@@ -64,10 +64,22 @@ func (fo *FO) Optimize() {
 		}
 	}
 
-//	for i := range *rosters {
-//		fmt.Printf("TEAM %d\n", i)
-//		fo.projectRoster((*rosters)[i], .9)
-//	}
+	teamStats, err := fo.yahoo.CurrentStats()
+	if err != nil {
+		log.Fatal(err)
+	}
+	teamProjections := make(map[int]StatLine)
+
+	for i := range *rosters {
+		fmt.Printf("TEAM %d\n", i)
+		totals := fo.projectRoster((*rosters)[i], .9)
+		teamProjections[i] = totals
+
+		fmt.Printf("CURRENT: %s\nPROJECTED:%s\n\n",
+			FormatBattingStats((*teamStats)[i]),
+			FormatBattingStats(teamProjections[i]))
+	}
+
 
 	// Full Docs:
 	// http://developer.yahoo.com/fantasysports/guide/index.html
@@ -82,11 +94,14 @@ func (fo *FO) Optimize() {
 	// "http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/players;status=FA;count=10",
 }
 
-func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) {
-	totals := make(StatLine)
+func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) StatLine {
+	starterStats := make([]StatLine, 0)
+	
+
 	for i := range roster {
 		player := roster[i]
 		stats := fo.projections.GetStatLine(PlayerID(player.FullName))
+		starterStats = append(starterStats, stats)
 
 		if player.PositionType == "B" {
 			fmt.Printf("%30s -> %s\n", player.FullName, FormatBattingStats(stats))
@@ -94,6 +109,8 @@ func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) {
 			fmt.Printf("%30s -> %s\n", player.FullName, FormatPitchingStats(stats))
 		}
 	}
+
+	return merge(starterStats)
 }
 
 func (fo *FO) myCurrentStats() {
