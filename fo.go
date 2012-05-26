@@ -83,6 +83,7 @@ func (fo *FO) Optimize() {
 }
 
 func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) {
+	totals := make(StatLine)
 	for i := range roster {
 		player := roster[i]
 		stats := fo.projections.GetStatLine(PlayerID(player.FullName))

@@ -40,7 +40,19 @@ const (
 	P_WALKS              StatID = 1012
 	P_WHIP               StatID = 1013
 	P_WINS               StatID = 1014
+
+	map[StatID]bool RATE_STATS {
+	B_BATTING_AVG: true,
+
+	}
 )
+
+
+func (StatLine s1) add(StatLine s2, weight float) {
+	for i := range(s2) {
+
+	}
+}
 
 type StatsClient interface {
 	GetStat(player PlayerID, stat StatID) Stat
