@@ -78,6 +78,9 @@ func (fo *FO) Optimize() {
 		fmt.Printf("CURRENT: %s\nPROJECTED:%s\n\n",
 			FormatBattingStats((*teamStats)[i]),
 			FormatBattingStats(teamProjections[i]))
+		fmt.Printf("CURRENT: %s\nPROJECTED:%s\n\n",
+			FormatPitchingStats((*teamStats)[i]),
+			FormatPitchingStats(teamProjections[i]))
 	}
 
 

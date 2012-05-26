@@ -43,35 +43,37 @@ const (
 
 )
 
-
+func isRateStat(s StatID) bool {
+	return s == B_BATTING_AVG ||
+		s == B_ON_BASE_PCT ||
+		s == B_SLUGGING ||
+		s == P_EARNED_RUN_AVERAGE ||
+		s == P_WHIP
+}
 
 func merge(indiv []StatLine) StatLine {
 	// replace equal-weight with unrolled/counting stats merge
 	totals := make(StatLine)
-	
-	avgAcc := Stat(0.0)
-	avgCount := 0
-	hrAcc := Stat(0)
-	rAcc := Stat(0)
-	rbiAcc := Stat(0)
-	sbAcc := Stat(0)
+
+	rawTotals := make(StatLine)
+	counts := make(StatLine)
 
 	for i := range(indiv) {
-		if (indiv[i][B_BATTING_AVG] > 0.001) {
-			avgAcc +=  indiv[i][B_BATTING_AVG]
-			avgCount++
-			hrAcc +=  indiv[i][B_HOME_RUNS]
-			rAcc +=  indiv[i][B_RUNS]
-			rbiAcc +=  indiv[i][B_RUNS_BATTED_IN]
-			sbAcc +=  indiv[i][B_STOLEN_BASES]
+		for s := range(indiv[i]) {
+			rawTotals[s] += indiv[i][s]
+			if (indiv[i][s] > 0.01) {
+				counts[s] += 1
+			}
 		}
 	}
 
-	totals[B_BATTING_AVG] = avgAcc / Stat(avgCount)
-	totals[B_HOME_RUNS] = hrAcc
-	totals[B_RUNS] = rAcc
-	totals[B_RUNS_BATTED_IN] = rbiAcc
-	totals[B_STOLEN_BASES] = sbAcc
+	for s := range(rawTotals) {
+		if isRateStat(s) {
+			totals[s] = rawTotals[s] / counts[s]
+		} else {
+			totals[s] = rawTotals[s]
+		}
+	}
 
 	return totals
 }
