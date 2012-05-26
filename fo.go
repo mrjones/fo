@@ -170,13 +170,6 @@ func score(stats map[TeamID]StatLine) map[TeamID]int {
 		}
 	}
 
-//	for t := range(rawScores) {
-//		fmt.Printf("\nTEAM %d\n", t)
-//		for s := range(rawScores[t]) {
-//			fmt.Printf("Stat %d -> %f (%d)\n", s, stats[t][s], rawScores[t][s])
-//		}
-//	}
-
 	return scores
 }
 
