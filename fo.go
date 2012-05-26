@@ -106,11 +106,11 @@ func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) StatLi
 		stats := fo.projections.GetStatLine(PlayerID(player.FullName))
 		starterStats = append(starterStats, stats)
 
-		if player.PositionType == "B" {
-			fmt.Printf("%30s -> %s\n", player.FullName, FormatBattingStats(stats))
-		} else {
-			fmt.Printf("%30s -> %s\n", player.FullName, FormatPitchingStats(stats))
-		}
+//		if player.PositionType == "B" {
+//			fmt.Printf("%30s -> %s\n", player.FullName, FormatBattingStats(stats))
+//		} else {
+//			fmt.Printf("%30s -> %s\n", player.FullName, FormatPitchingStats(stats))
+//		}
 	}
 
 	return merge(starterStats)
