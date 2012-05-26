@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"sort"
 )
 
 const (
@@ -68,21 +69,39 @@ func (fo *FO) Optimize() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	teamProjections := make(map[int]StatLine)
+	teamProjections := make(map[TeamID]StatLine)
 
 	for i := range *rosters {
 		fmt.Printf("TEAM %d\n", i)
 		totals := fo.projectRoster((*rosters)[i], .9)
 		teamProjections[i] = totals
 
-		fmt.Printf("CURRENT: %s\nPROJECTED:%s\n\n",
+		fmt.Printf("CURRENT: %s\nPROJECTED:%s\nCURRENT: %s\nPROJECTED: %s\n\n",
 			FormatBattingStats((*teamStats)[i]),
-			FormatBattingStats(teamProjections[i]))
-		fmt.Printf("CURRENT: %s\nPROJECTED:%s\n\n",
+			FormatBattingStats(teamProjections[i]),
 			FormatPitchingStats((*teamStats)[i]),
 			FormatPitchingStats(teamProjections[i]))
 	}
 
+
+	fmt.Printf("Projections\n")
+	scores := score(teamProjections)
+	a := 0
+	for t := range(scores) {
+		fmt.Printf("TEAM %d: %d\n", t, scores[t])
+		a += scores[t]
+	}
+	fmt.Println(a)
+	
+
+	fmt.Printf("\nActuals\n")
+	scores = score(*teamStats)
+	a = 0
+	for t := range(scores) {
+		fmt.Printf("TEAM %d: %d\n", t, scores[t])
+		a += scores[t]
+	}
+	fmt.Println(a)
 
 	// Full Docs:
 	// http://developer.yahoo.com/fantasysports/guide/index.html
@@ -114,6 +133,51 @@ func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) StatLi
 	}
 
 	return merge(starterStats)
+}
+
+
+func score(stats map[TeamID]StatLine) map[TeamID]int {
+	rawScores := make(map[TeamID]map[StatID]int)
+
+	for t := range(stats) {
+		rawScores[t] = make(map[StatID]int)
+	}
+
+	for statid := range(scoringCategories()) {
+		ranks := make(sort.Float64Slice, len(stats))
+		i := 0
+		for _, statline := range(stats) {
+			ranks[i] = float64(statline[statid])
+			i++
+		}
+		sort.Sort(ranks)
+
+		for teamid, statline := range(stats) {
+			target := float64(statline[statid])
+			score := ranks.Search(target) + 1
+			if lowerIsBetter(statid) {
+				score = 10 - score + 1
+			}
+			rawScores[teamid][statid] = score
+		}
+	}
+
+	scores := make(map[TeamID]int)
+
+	for t := range(rawScores) {
+		for s := range(rawScores[t]) {
+			scores[t] += rawScores[t][s]
+		}
+	}
+
+//	for t := range(rawScores) {
+//		fmt.Printf("\nTEAM %d\n", t)
+//		for s := range(rawScores[t]) {
+//			fmt.Printf("Stat %d -> %f (%d)\n", s, stats[t][s], rawScores[t][s])
+//		}
+//	}
+
+	return scores
 }
 
 func (fo *FO) myCurrentStats() {
@@ -189,6 +253,22 @@ func rosterTopology() map[Position]int {
 		"SP" : 4,
 		"RP" : 2,
 		"P" : 2,
+	}
+}
+
+func scoringCategories() map[StatID]struct{} {
+	return map[StatID]struct{} {
+	B_BATTING_AVG: struct{}{},
+	B_HOME_RUNS: struct{}{},
+	B_RUNS: struct{}{},
+	B_RUNS_BATTED_IN: struct{}{},
+	B_STOLEN_BASES: struct{}{},
+
+	P_WINS: struct{}{},
+	P_SAVES: struct{}{},
+	P_EARNED_RUN_AVERAGE: struct{}{},
+	P_WHIP: struct{}{},
+	P_STRIKE_OUTS: struct{}{},
 	}
 }
 

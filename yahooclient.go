@@ -23,7 +23,7 @@ type FantasyContent struct {
 type YahooTeam struct {
 	Name    string `xml:"name"`
 	TeamKey string `xml:"team_key"`
-	TeamId  int    `xml:"team_id"`
+	TeamId  TeamID    `xml:"team_id"`
 
 	Roster []YahooPlayer `xml:"roster>players>player"`
 
@@ -49,7 +49,7 @@ type YahooLeague struct {
 	Id        int         `xml:"league_id"`
 }
 
-func (yc *YahooClient) LeagueRosters() (*map[int][]YahooPlayer, error) {
+func (yc *YahooClient) LeagueRosters() (*map[TeamID][]YahooPlayer, error) {
 	response, err := yc.Get(
 		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/teams/roster")
 	if err != nil {
@@ -64,7 +64,7 @@ func (yc *YahooClient) LeagueRosters() (*map[int][]YahooPlayer, error) {
 		return nil, err
 	}
 
-	rosters := map[int][]YahooPlayer{}
+	rosters := map[TeamID][]YahooPlayer{}
 	for i := range data.League.Teams2 {
 		team := data.League.Teams2[i]
 		rosters[team.TeamId] = team.Roster
@@ -108,7 +108,7 @@ func mapYahooIdToStatId() map[int]StatID {
 	}
 }
 
-func (yc *YahooClient) CurrentStats() (*map[int]StatLine, error) {
+func (yc *YahooClient) CurrentStats() (*map[TeamID]StatLine, error) {
 	response, err := yc.Get(
 		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/standings")
 
@@ -126,7 +126,7 @@ func (yc *YahooClient) CurrentStats() (*map[int]StatLine, error) {
 
 	yahooIdToStatIdMap := mapYahooIdToStatId()
 
-	teamstats := map[int]StatLine{}
+	teamstats := map[TeamID]StatLine{}
 
 	for i := range data.League.Teams {
 		team := data.League.Teams[i]

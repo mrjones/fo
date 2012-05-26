@@ -8,6 +8,8 @@ type StatID int32
 
 type StatLine map[StatID]Stat
 
+type TeamID int
+
 const (
 	B_AT_BATS         StatID = 1
 	B_BATTING_AVG     StatID = 2
@@ -48,6 +50,11 @@ func isRateStat(s StatID) bool {
 		s == B_ON_BASE_PCT ||
 		s == B_SLUGGING ||
 		s == P_EARNED_RUN_AVERAGE ||
+		s == P_WHIP
+}
+
+func lowerIsBetter(s StatID) bool {
+	return s == P_EARNED_RUN_AVERAGE ||
 		s == P_WHIP
 }
 
