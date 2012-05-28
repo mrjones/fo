@@ -13,10 +13,10 @@ func printRawScores(scores map[TeamID]map[StatID]int, stats map[TeamID]StatLine)
 	}
 }
 
-func printScores(scores map[TeamID]int) {
-	a := 0
+func printScores(scores map[TeamID]float32) {
+	a := float32(0)
 	for t := range scores {
-		fmt.Printf("TEAM %d: %d\n", t, scores[t])
+		fmt.Printf("TEAM %d: %.1f\n", t, scores[t])
 		a += scores[t]
 	}
 	fmt.Println(a)

@@ -13,10 +13,10 @@ func TestTwoTeamsOneStat(t *testing.T) {
 	score := score(stats, map[StatID]struct{}{B_HOME_RUNS: struct{}{}})
 
 	if score[1] != 2 {
-		t.Errorf("Team 1 should have 2 points, has: %d", score[1])
+		t.Errorf("Team 1 should have 2 points, has: %f", score[1])
 	}
 	if score[2] != 1 {
-		t.Errorf("Team 2 should have 1 points, has: %d", score[2])
+		t.Errorf("Team 2 should have 1 points, has: %f", score[2])
 	}
 }
 
@@ -32,10 +32,10 @@ func TestTwoTeamsTwoStats(t *testing.T) {
 	})
 
 	if score[1] != 4 {
-		t.Errorf("Team 1 should have 4 points, has: %d", score[1])
+		t.Errorf("Team 1 should have 4 points, has: %f", score[1])
 	}
 	if score[2] != 2 {
-		t.Errorf("Team 2 should have 2 points, has: %d", score[2])
+		t.Errorf("Team 2 should have 2 points, has: %f", score[2])
 	}
 }
 
@@ -51,10 +51,10 @@ func TestTwoTeamsReverseStats(t *testing.T) {
 	})
 
 	if score[1] != 4 {
-		t.Errorf("Team 1 should have 4 points, has: %d", score[1])
+		t.Errorf("Team 1 should have 4 points, has: %f", score[1])
 	}
 	if score[2] != 2 {
-		t.Errorf("Team 2 should have 2 points, has: %d", score[2])
+		t.Errorf("Team 2 should have 2 points, has: %f", score[2])
 	}
 }
 
@@ -69,9 +69,27 @@ func TestIgnoresNonCountingStats(t *testing.T) {
 	})
 
 	if score[1] != 2 {
-		t.Errorf("Team 1 should have 2 points, has: %d", score[1])
+		t.Errorf("Team 1 should have 2 points, has: %f", score[1])
 	}
 	if score[2] != 1 {
-		t.Errorf("Team 2 should have 1 points, has: %d", score[2])
+		t.Errorf("Team 2 should have 1 points, has: %f", score[2])
+	}
+}
+
+func TestHandlesTies(t *testing.T) {
+	stats := map[TeamID]StatLine{
+	1: StatLine{B_HOME_RUNS: 5},
+  2: StatLine{B_HOME_RUNS: 5},
+	}
+
+	score := score(stats, map[StatID]struct{}{
+		B_HOME_RUNS:   struct{}{},
+	})
+
+	if score[1] != 1.5 {
+		t.Errorf("Team 1 should have 2 points, has: %f", score[1])
+	}
+	if score[2] != 1.5 {
+		t.Errorf("Team 2 should have 1 points, has: %f", score[2])
 	}
 }

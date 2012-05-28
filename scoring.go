@@ -4,27 +4,33 @@ import (
 	"sort"
 )
 
-func score(stats map[TeamID]StatLine, scoringCategories map[StatID]struct{}) map[TeamID]int {
-	rawScores := make(map[StatID]map[TeamID]int)
+func score(stats map[TeamID]StatLine, scoringCategories map[StatID]struct{}) map[TeamID]float32 {
+	scoresByStat := make(map[StatID]map[TeamID]float32)
 
 	for statid := range scoringCategories {
-		rawScores[statid] = scoreStat(stats, statid)
+		scoresByStat[statid] = scoreStat(stats, statid)
 	}
 
-	return flatten(rawScores)
+	return flatten(scoresByStat)
 }
 
-func scoreStat(stats map[TeamID]StatLine, statid StatID) map[TeamID]int {
+func scoreStat(stats map[TeamID]StatLine, statid StatID) map[TeamID]float32 {
 	numteams := len(stats)
-	scoremap := make(map[TeamID]int)
+	scoremap := make(map[TeamID]float32)
 
 	slice := statSlice(stats, statid)
 	sort.Sort(slice)
 	for teamid, statline := range stats {
 		target := float64(statline[statid])
-		score := slice.Search(target) + 1
+		idx := slice.Search(target)
+		score := float32(idx + 1)
+
+		// TODO(mrjones): more generic tiebreaking
+		if idx < numteams - 1 && slice[idx] == slice[idx + 1] {
+			score += .5
+		}
 		if lowerIsBetter(statid) {
-			score = numteams - score + 1
+			score = float32(numteams) - score + 1
 		}
 		scoremap[teamid] = score
 	}
@@ -43,8 +49,8 @@ func statSlice(stats map[TeamID]StatLine, statid StatID) sort.Float64Slice {
 	return slice
 }
 
-func flatten(stats map[StatID]map[TeamID]int) map[TeamID]int {
-	result := make(map[TeamID]int)
+func flatten(stats map[StatID]map[TeamID]float32) map[TeamID]float32 {
+	result := make(map[TeamID]float32)
 	for statid := range stats {
 		for teamid := range stats[statid] {
 			result[teamid] += stats[statid][teamid]
