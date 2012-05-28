@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"sort"
 )
 
 const (
@@ -35,10 +36,21 @@ func (fo *FO) Optimize() {
 	}
 
 	fmt.Printf("Projections\n")
-	printScores(score(teamProjections, scoringCategories()))
+	printScores(scoreLeague(teamProjections, scoringCategories()))
 
 	fmt.Printf("\nActuals\n")
-	printScores(score(*teamStats, scoringCategories()))
+	printScores(scoreLeague(*teamStats, scoringCategories()))
+}
+
+func (fo *FO) projectPlayers(players []YahooPlayer, seasonComplete float32) map[PlayerID]StatLine {
+	result := make(map[PlayerID]StatLine)
+
+	for i := range(players) {
+		id := PlayerID(players[i].FullName)
+		result[id] = fo.projections.GetStatLine(id)
+	}
+
+	return result
 }
 
 func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) StatLine {
@@ -56,20 +68,80 @@ func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) StatLi
 	return merge(starterStats)
 }
 
+type TeamLeaderEntry struct {
+	Score float32
+	ID PlayerID
+}
+
+type TeamLeaders []TeamLeaderEntry
+
+func (l TeamLeaders) Len() int {
+	return len(l)
+}
+
+func (l TeamLeaders) Less(i, j int) bool {
+	return l[i].Score > l[j].Score
+}
+
+func (l TeamLeaders) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
+func SortedLeaders(scores map[PlayerID]float32) TeamLeaders {
+	l := make(TeamLeaders, 0)
+	for pid, score := range(scores) {
+		l = append(l, TeamLeaderEntry{Score: score, ID: pid})
+	}
+	sort.Sort(l)
+	return l
+}
+
+func indexByName(players []YahooPlayer) map[PlayerID]YahooPlayer {
+	index := make(map[PlayerID]YahooPlayer)
+	for _, player := range(players) {
+		index[PlayerID(player.FullName)] = player
+	}
+	return index
+}
+
 func (fo *FO) selectStarters(roster []YahooPlayer) map[Position][]YahooPlayer {
 	positionCounts := rosterTopology()
+	statMap := fo.projectPlayers(roster, 1.0)
+	leaders := SortedLeaders(scoreTeam(statMap, scoringCategories()))
 	starters := make(map[Position][]YahooPlayer)
+	index := indexByName(roster)
 
-	for i := range roster {
-		for j := range roster[i].Position {
-			pos := Position(roster[i].Position[j])
+//	for i := range roster {
+//		for j := range roster[i].Position {
+//			pos := Position(roster[i].Position[j])
+//			if positionCounts[pos] > 0 {
+//				starters[pos] = append(starters[pos], roster[i])
+//				positionCounts[pos]--
+//			}
+//			break
+//		}
+//	}
+
+	for _, entry := range(leaders) {
+		player := index[entry.ID]
+		starting := false
+		for _, posStr := range(player.Position) {
+			pos := Position(posStr)
 			if positionCounts[pos] > 0 {
-				starters[pos] = append(starters[pos], roster[i])
+				starters[pos] = append(starters[pos], player)
 				positionCounts[pos]--
+				fmt.Printf("%s is starting at %s\n", player.FullName, pos)
+				starting = true
+				break
 			}
-			break
+		}
+		if !starting {
+			fmt.Printf("%s is NOT starting\n", player.FullName)
 		}
 	}
+
+	fmt.Println("---")
+
 	return starters
 }
 

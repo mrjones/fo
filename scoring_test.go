@@ -10,7 +10,7 @@ func TestTwoTeamsOneStat(t *testing.T) {
 		2: StatLine{B_HOME_RUNS: 5},
 	}
 
-	score := score(stats, map[StatID]struct{}{B_HOME_RUNS: struct{}{}})
+	score := scoreLeague(stats, map[StatID]struct{}{B_HOME_RUNS: struct{}{}})
 
 	if score[1] != 2 {
 		t.Errorf("Team 1 should have 2 points, has: %f", score[1])
@@ -26,7 +26,7 @@ func TestTwoTeamsTwoStats(t *testing.T) {
 		2: StatLine{B_HOME_RUNS: 5, P_STRIKE_OUTS: 50},
 	}
 
-	score := score(stats, map[StatID]struct{}{
+	score := scoreLeague(stats, map[StatID]struct{}{
 		B_HOME_RUNS:   struct{}{},
 		P_STRIKE_OUTS: struct{}{},
 	})
@@ -45,7 +45,7 @@ func TestTwoTeamsReverseStats(t *testing.T) {
 		2: StatLine{B_HOME_RUNS: 5, P_EARNED_RUN_AVERAGE: 5.00},
 	}
 
-	score := score(stats, map[StatID]struct{}{
+	score := scoreLeague(stats, map[StatID]struct{}{
 		B_HOME_RUNS:   struct{}{},
 		P_EARNED_RUN_AVERAGE: struct{}{},
 	})
@@ -64,7 +64,7 @@ func TestIgnoresNonCountingStats(t *testing.T) {
 		2: StatLine{B_HOME_RUNS: 5, B_AT_BATS: 500},
 	}
 
-	score := score(stats, map[StatID]struct{}{
+	score := scoreLeague(stats, map[StatID]struct{}{
 		B_HOME_RUNS:   struct{}{},
 	})
 
@@ -82,7 +82,7 @@ func TestHandlesTies(t *testing.T) {
   2: StatLine{B_HOME_RUNS: 5},
 	}
 
-	score := score(stats, map[StatID]struct{}{
+	score := scoreLeague(stats, map[StatID]struct{}{
 		B_HOME_RUNS:   struct{}{},
 	})
 

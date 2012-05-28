@@ -1,11 +1,44 @@
 package main
 
 import (
+	"strconv"
 	"sort"
 )
 
-func score(stats map[TeamID]StatLine, scoringCategories map[StatID]struct{}) map[TeamID]float32 {
-	scoresByStat := make(map[StatID]map[TeamID]float32)
+func scoreLeague(stats map[TeamID]StatLine, scoringCategories map[StatID]struct{}) map[TeamID]float32 {
+	rawStats := make(map[string]StatLine)
+	for k,v := range(stats) {
+		rawStats[strconv.Itoa(int(k))] = v
+	}
+
+	rawScores := score(rawStats, scoringCategories)
+	scores := make(map[TeamID]float32)
+	for k,v := range(rawScores) {
+		i, err := strconv.Atoi(k)
+		if err != nil { panic(err) }
+		scores[TeamID(i)] = v
+	}
+
+	return scores
+}
+
+func scoreTeam(stats map[PlayerID]StatLine, scoringCategories map[StatID]struct{}) map[PlayerID]float32 {
+	rawStats := make(map[string]StatLine)
+	for k,v := range(stats) {
+		rawStats[string(k)] = v
+	}
+
+	rawScores := score(rawStats, scoringCategories)
+	scores := make(map[PlayerID]float32)
+	for k,v := range(rawScores) {
+		scores[PlayerID(k)] = v
+	}
+
+	return scores
+}
+
+func score(stats map[string]StatLine, scoringCategories map[StatID]struct{}) map[string]float32 {
+	scoresByStat := make(map[StatID]map[string]float32)
 
 	for statid := range scoringCategories {
 		scoresByStat[statid] = scoreStat(stats, statid)
@@ -14,9 +47,9 @@ func score(stats map[TeamID]StatLine, scoringCategories map[StatID]struct{}) map
 	return flatten(scoresByStat)
 }
 
-func scoreStat(stats map[TeamID]StatLine, statid StatID) map[TeamID]float32 {
+func scoreStat(stats map[string]StatLine, statid StatID) map[string]float32 {
 	numteams := len(stats)
-	scoremap := make(map[TeamID]float32)
+	scoremap := make(map[string]float32)
 
 	slice := statSlice(stats, statid)
 	sort.Sort(slice)
@@ -38,7 +71,7 @@ func scoreStat(stats map[TeamID]StatLine, statid StatID) map[TeamID]float32 {
 	return scoremap
 }
 
-func statSlice(stats map[TeamID]StatLine, statid StatID) sort.Float64Slice {
+func statSlice(stats map[string]StatLine, statid StatID) sort.Float64Slice {
 	numteams := len(stats)
 	slice := make(sort.Float64Slice, numteams)
 	i := 0
@@ -49,8 +82,8 @@ func statSlice(stats map[TeamID]StatLine, statid StatID) sort.Float64Slice {
 	return slice
 }
 
-func flatten(stats map[StatID]map[TeamID]float32) map[TeamID]float32 {
-	result := make(map[TeamID]float32)
+func flatten(stats map[StatID]map[string]float32) map[string]float32 {
+	result := make(map[string]float32)
 	for statid := range stats {
 		for teamid := range stats[statid] {
 			result[teamid] += stats[statid][teamid]
