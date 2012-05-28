@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"sort"
 )
 
 const (
@@ -40,7 +39,6 @@ func (fo *FO) Optimize() {
 
 func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) StatLine {
 	starterStats := make([]StatLine, 0)
-
 	starters := fo.selectStarters(roster)	
 
 	for pos := range(starters) {
@@ -52,44 +50,6 @@ func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) StatLi
 	}
 
 	return merge(starterStats)
-}
-
-
-func score(stats map[TeamID]StatLine) map[TeamID]int {
-	rawScores := make(map[TeamID]map[StatID]int)
-
-	for t := range(stats) {
-		rawScores[t] = make(map[StatID]int)
-	}
-
-	for statid := range(scoringCategories()) {
-		ranks := make(sort.Float64Slice, len(stats))
-		i := 0
-		for _, statline := range(stats) {
-			ranks[i] = float64(statline[statid])
-			i++
-		}
-		sort.Sort(ranks)
-
-		for teamid, statline := range(stats) {
-			target := float64(statline[statid])
-			score := ranks.Search(target) + 1
-			if lowerIsBetter(statid) {
-				score = 10 - score + 1
-			}
-			rawScores[teamid][statid] = score
-		}
-	}
-
-	scores := make(map[TeamID]int)
-
-	for t := range(rawScores) {
-		for s := range(rawScores[t]) {
-			scores[t] += rawScores[t][s]
-		}
-	}
-
-	return scores
 }
 
 func (fo *FO) selectStarters(roster []YahooPlayer) map[Position][]YahooPlayer {
