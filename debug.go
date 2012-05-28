@@ -5,9 +5,9 @@ import (
 )
 
 func printRawScores(scores map[TeamID]map[StatID]int, stats map[TeamID]StatLine) {
-	for t := range(scores) {
+	for t := range scores {
 		fmt.Printf("\nTEAM %d\n", t)
-		for s := range(scores[t]) {
+		for s := range scores[t] {
 			fmt.Printf("Stat %d -> %f (%d)\n", s, stats[t][s], scores[t][s])
 		}
 	}
@@ -15,7 +15,7 @@ func printRawScores(scores map[TeamID]map[StatID]int, stats map[TeamID]StatLine)
 
 func printScores(scores map[TeamID]int) {
 	a := 0
-	for t := range(scores) {
+	for t := range scores {
 		fmt.Printf("TEAM %d: %d\n", t, scores[t])
 		a += scores[t]
 	}
@@ -23,7 +23,7 @@ func printScores(scores map[TeamID]int) {
 }
 
 func printRoster(starters map[Position][]YahooPlayer) {
-	for pos := range(starters) {
+	for pos := range starters {
 		fmt.Printf("%s ->  %v\n", pos, starters[pos])
 	}
 }
@@ -50,4 +50,3 @@ func FormatPitchingStats(stats StatLine) string {
 		stats[P_EARNED_RUN_AVERAGE],
 		whip)
 }
-

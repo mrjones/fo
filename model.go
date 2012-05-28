@@ -42,7 +42,6 @@ const (
 	P_WALKS              StatID = 1012
 	P_WHIP               StatID = 1013
 	P_WINS               StatID = 1014
-
 )
 
 func isRateStat(s StatID) bool {
@@ -65,16 +64,16 @@ func merge(indiv []StatLine) StatLine {
 	rawTotals := make(StatLine)
 	counts := make(StatLine)
 
-	for i := range(indiv) {
-		for s := range(indiv[i]) {
+	for i := range indiv {
+		for s := range indiv[i] {
 			rawTotals[s] += indiv[i][s]
-			if (indiv[i][s] > 0.01) {
+			if indiv[i][s] > 0.01 {
 				counts[s] += 1
 			}
 		}
 	}
 
-	for s := range(rawTotals) {
+	for s := range rawTotals {
 		if isRateStat(s) {
 			totals[s] = rawTotals[s] / counts[s]
 		} else {

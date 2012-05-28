@@ -23,7 +23,7 @@ type FantasyContent struct {
 type YahooTeam struct {
 	Name    string `xml:"name"`
 	TeamKey string `xml:"team_key"`
-	TeamId  TeamID    `xml:"team_id"`
+	TeamId  TeamID `xml:"team_id"`
 
 	Roster []YahooPlayer `xml:"roster>players>player"`
 
@@ -262,14 +262,14 @@ func AccessTokenFromPlainString(s string) (*oauth.AccessToken, error) {
 	return &oauth.AccessToken{Token: token, Secret: secret}, nil
 }
 
-	// Full Docs:
-	// http://developer.yahoo.com/fantasysports/guide/index.html
-	//
-	// League standings: 
-	// "http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/standings",
-	//
-	// Team Roster:
-	// "http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster",
-	//
-	// 10 Free Agents:
-	// "http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/players;status=FA;count=10",
+// Full Docs:
+// http://developer.yahoo.com/fantasysports/guide/index.html
+//
+// League standings: 
+// "http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/standings",
+//
+// Team Roster:
+// "http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster",
+//
+// 10 Free Agents:
+// "http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/players;status=FA;count=10",

@@ -7,7 +7,7 @@ import (
 func score(stats map[TeamID]StatLine, scoringCategories map[StatID]struct{}) map[TeamID]int {
 	rawScores := make(map[StatID]map[TeamID]int)
 
-	for statid := range(scoringCategories) {
+	for statid := range scoringCategories {
 		rawScores[statid] = scoreStat(stats, statid)
 	}
 
@@ -20,7 +20,7 @@ func scoreStat(stats map[TeamID]StatLine, statid StatID) map[TeamID]int {
 
 	slice := statSlice(stats, statid)
 	sort.Sort(slice)
-	for teamid, statline := range(stats) {
+	for teamid, statline := range stats {
 		target := float64(statline[statid])
 		score := slice.Search(target) + 1
 		if lowerIsBetter(statid) {
@@ -36,7 +36,7 @@ func statSlice(stats map[TeamID]StatLine, statid StatID) sort.Float64Slice {
 	numteams := len(stats)
 	slice := make(sort.Float64Slice, numteams)
 	i := 0
-	for _, statline := range(stats) {
+	for _, statline := range stats {
 		slice[i] = float64(statline[statid])
 		i++
 	}
@@ -45,12 +45,11 @@ func statSlice(stats map[TeamID]StatLine, statid StatID) sort.Float64Slice {
 
 func flatten(stats map[StatID]map[TeamID]int) map[TeamID]int {
 	result := make(map[TeamID]int)
-	for statid := range(stats) {
-		for teamid := range(stats[statid]) {
+	for statid := range stats {
+		for teamid := range stats[statid] {
 			result[teamid] += stats[statid][teamid]
 		}
 	}
 
 	return result
 }
-
