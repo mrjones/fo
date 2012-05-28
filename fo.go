@@ -31,10 +31,10 @@ func (fo *FO) Optimize() {
 	}
 
 	fmt.Printf("Projections\n")
-	printScores(score(teamProjections))
+	printScores(score(teamProjections, scoringCategories()))
 
 	fmt.Printf("\nActuals\n")
-	printScores(score(*teamStats))
+	printScores(score(*teamStats, scoringCategories()))
 }
 
 func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) StatLine {
