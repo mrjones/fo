@@ -25,6 +25,11 @@ func (fo *FO) Optimize() {
 		log.Fatal(err)
 	}
 
+	err = trade(rosters, "Zack Cozart", "Troy Tulowitzki")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	teamStats, err := fo.yahoo.CurrentStats()
 	if err != nil {
 		log.Fatal(err)
@@ -40,6 +45,28 @@ func (fo *FO) Optimize() {
 
 	fmt.Printf("\nActuals\n")
 	printScores(scoreLeague(*teamStats, scoringCategories()))
+}
+
+func trade(rosters *map[TeamID][]YahooPlayer, p1, p2 PlayerID) error {
+	t1, i1 := TeamID(-1), -1
+	t2, i2 := TeamID(-1), -1
+	for team, roster := range(*rosters) {
+		for i, player := range(roster) {
+			c := PlayerID(player.FullName)
+			if p1 == c {
+				t1, i1 = team, i
+			} else if (p2 == c) {
+				t2, i2 = team, i
+			}
+		}
+	}
+
+	if t1 == -1 || i1 == -1 || t2 == -1 || i2 == 1 {
+		return fmt.Errorf("Bad lookup: %d %d %d %d", t1, i1, t2, i2)
+	}
+
+	(*rosters)[t1][i1], (*rosters)[t2][i2] = (*rosters)[t2][i2], (*rosters)[t1][i1]
+	return nil
 }
 
 func (fo *FO) projectPlayers(players []YahooPlayer, seasonComplete float32) map[PlayerID]StatLine {
@@ -110,17 +137,6 @@ func (fo *FO) selectStarters(roster []YahooPlayer) map[Position][]YahooPlayer {
 	leaders := SortedLeaders(scoreTeam(statMap, scoringCategories()))
 	starters := make(map[Position][]YahooPlayer)
 	index := indexByName(roster)
-
-	//	for i := range roster {
-	//		for j := range roster[i].Position {
-	//			pos := Position(roster[i].Position[j])
-	//			if positionCounts[pos] > 0 {
-	//				starters[pos] = append(starters[pos], roster[i])
-	//				positionCounts[pos]--
-	//			}
-	//			break
-	//		}
-	//	}
 
 	for _, entry := range leaders {
 		player := index[entry.ID]
