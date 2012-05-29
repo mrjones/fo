@@ -25,26 +25,56 @@ func (fo *FO) Optimize() {
 		log.Fatal(err)
 	}
 
-	err = trade(rosters, "Zack Cozart", "Troy Tulowitzki")
+	err = fo.scoreTrade(rosters, "Matt Cain", "Troy Tulowitzki")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	teamStats, err := fo.yahoo.CurrentStats()
-	if err != nil {
-		log.Fatal(err)
-	}
+//	teamStats, err := fo.yahoo.CurrentStats()
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	teamProjections := projectLeague(rosters)
+//
+//	fmt.Printf("Projections\n")
+//	printScores(scoreLeague(teamProjections, scoringCategories()))
+//
+//	fmt.Printf("\nActuals\n")
+//	printScores(scoreLeague(*teamStats, scoringCategories()))
+}
 
+func (fo *FO) projectLeague(rosters *map[TeamID][]YahooPlayer) map[TeamID]StatLine {
 	teamProjections := make(map[TeamID]StatLine)
 	for i := range *rosters {
 		teamProjections[i] = fo.projectRoster((*rosters)[i], .9)
 	}
+	return teamProjections
+}
 
-	fmt.Printf("Projections\n")
-	printScores(scoreLeague(teamProjections, scoringCategories()))
+func (fo *FO) scoreTrade(rosters *map[TeamID][]YahooPlayer, p1, p2 PlayerID) error {
+	beforeProjections := fo.projectLeague(rosters)
+	// copy?
+		err := trade(rosters, p1, p2)
+	if err != nil {
+		return err
+	}
+	afterProjections := fo.projectLeague(rosters)
 
-	fmt.Printf("\nActuals\n")
-	printScores(scoreLeague(*teamStats, scoringCategories()))
+	fmt.Printf("Before\n")
+	beforeScores := scoreLeague(beforeProjections, scoringCategories())
+	printScores(beforeScores)
+
+	fmt.Printf("After\n")
+	afterScores := scoreLeague(afterProjections, scoringCategories())
+	printScores(afterScores)
+
+	fmt.Printf("Delta\n")
+	for t := range(beforeProjections) {
+		fmt.Printf("TEAM %d: %f\n", t, afterScores[t] - beforeScores[t])
+	}
+
+	return nil
 }
 
 func trade(rosters *map[TeamID][]YahooPlayer, p1, p2 PlayerID) error {
@@ -64,6 +94,9 @@ func trade(rosters *map[TeamID][]YahooPlayer, p1, p2 PlayerID) error {
 	if t1 == -1 || i1 == -1 || t2 == -1 || i2 == 1 {
 		return fmt.Errorf("Bad lookup: %d %d %d %d", t1, i1, t2, i2)
 	}
+
+	fmt.Printf("Moving %s from team %d to team %d\n", p1, t1, t2)
+	fmt.Printf("Moving %s from team %d to team %d\n", p2, t2, t1)
 
 	(*rosters)[t1][i1], (*rosters)[t2][i2] = (*rosters)[t2][i2], (*rosters)[t1][i1]
 	return nil
@@ -146,17 +179,17 @@ func (fo *FO) selectStarters(roster []YahooPlayer) map[Position][]YahooPlayer {
 			if positionCounts[pos] > 0 {
 				starters[pos] = append(starters[pos], player)
 				positionCounts[pos]--
-				fmt.Printf("%s is starting at %s\n", player.FullName, pos)
+//				fmt.Printf("%s is starting at %s\n", player.FullName, pos)
 				starting = true
 				break
 			}
 		}
 		if !starting {
-			fmt.Printf("%s is NOT starting\n", player.FullName)
+//			fmt.Printf("%s is NOT starting\n", player.FullName)
 		}
 	}
 
-	fmt.Println("---")
+//	fmt.Println("---")
 
 	return starters
 }
