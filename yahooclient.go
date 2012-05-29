@@ -4,8 +4,10 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mrjones/oauth"
 )
@@ -13,6 +15,7 @@ import (
 type YahooClient struct {
 	tokenFile string
 	oauth     *oauth.Consumer
+	cache  ReadThroughCache
 }
 
 type FantasyContent struct {
@@ -49,9 +52,22 @@ type YahooLeague struct {
 	Id        int         `xml:"league_id"`
 }
 
+func oauthUrlFetcher(yc *YahooClient, url string) FetchFunction {
+	return func() (string, error) {
+		log.Printf("Fetching (via OAuth): '%s'", url)
+		return yc.Get(url)
+	}
+}
+
+func (yc *YahooClient) cacheGet(key string, url string) (string, error) {
+	return yc.cache.Get(oauthUrlFetcher(yc, url), key, time.Hour * 24)
+}
+
 func (yc *YahooClient) LeagueRosters() (*map[TeamID][]YahooPlayer, error) {
-	response, err := yc.Get(
-		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/teams/roster")
+	response, err := yc.cacheGet(
+		"league_rosters",
+		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/teams/roster");
+
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +90,8 @@ func (yc *YahooClient) LeagueRosters() (*map[TeamID][]YahooPlayer, error) {
 }
 
 func (yc *YahooClient) MyRoster() (*[]YahooPlayer, error) {
-	response, err := yc.Get(
+	response, err := yc.cacheGet(
+		"my_roster",
 		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
 
 	if err != nil {
@@ -109,7 +126,8 @@ func mapYahooIdToStatId() map[int]StatID {
 }
 
 func (yc *YahooClient) CurrentStats() (*map[TeamID]StatLine, error) {
-	response, err := yc.Get(
+	response, err := yc.cacheGet(
+		"current_stats",
 		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/standings")
 
 	if err != nil {
@@ -167,6 +185,7 @@ func NewYahooClient(consumerKey, consumerSecret, tokenFile string) *YahooClient 
 				AuthorizeTokenUrl: "https://api.login.yahoo.com/oauth/v2/request_auth",
 				AccessTokenUrl:    "https://api.login.yahoo.com/oauth/v2/get_token",
 			}),
+		cache: NewReadThroughCache(NewFileKVStore("./cache")),
 	}
 }
 
