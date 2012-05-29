@@ -13,6 +13,7 @@ const (
 	BATTERS_CSV  = "zips2012batters.csv"
 	PITCHERS_URL = "http://www.baseballthinkfactory.org/szymborski/ZiPS2012v1PIT.csv"
 	PITCHERS_CSV = "zips2012pitchers.csv"
+	ONE_MONTH = 30 * 24 * time.Hour
 )
 
 type ZipsClient struct {
@@ -108,7 +109,7 @@ func urlFetcher(url string) FetchFunction {
 func indexBattingStats() (*map[PlayerID]StatLine, error) {
 	cache := NewReadThroughCache(NewFileKVStore("./cache"))
 	cacheReader, err := cache.GetAsReader(
-		urlFetcher(BATTERS_URL), BATTERS_CSV, 24*30*time.Hour)
+		urlFetcher(BATTERS_URL), BATTERS_CSV, ONE_MONTH)
 
 	if err != nil {
 		return nil, err
@@ -120,7 +121,7 @@ func indexBattingStats() (*map[PlayerID]StatLine, error) {
 func indexPitchingStats() (*map[PlayerID]StatLine, error) {
 	cache := NewReadThroughCache(NewFileKVStore("./cache"))
 	cacheReader, err := cache.GetAsReader(
-		urlFetcher(PITCHERS_URL), PITCHERS_CSV, 24*30*time.Hour)
+		urlFetcher(PITCHERS_URL), PITCHERS_CSV, ONE_MONTH)
 
 	if err != nil {
 		return nil, err
