@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -18,6 +19,15 @@ type ReadThroughCache struct {
 
 func NewReadThroughCache(storage KVStore) ReadThroughCache {
 	return ReadThroughCache{storage: storage}
+}
+
+func (c ReadThroughCache) GetAsReader(ff FetchFunction, cachekey string, maxage time.Duration) (string, error) {
+	contents, err := Get(ff, cachekey, maxage)
+	if err != nil {
+		return nil, err
+	}
+
+	return strings.NewReader(contents), nil
 }
 
 func (c ReadThroughCache) Get(ff FetchFunction, cachekey string, maxage time.Duration) (string, error) {
