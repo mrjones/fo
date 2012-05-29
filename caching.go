@@ -17,20 +17,19 @@ type ReadThroughCache struct {
 	storage KVStore
 }
 
+// Creates a new ReadThroughCache with the given backing store.  The most common
+// expected usage is:
+// NewReadThroughCache(NewFileKVStore("<cache directory>"))
 func NewReadThroughCache(storage KVStore) ReadThroughCache {
 	return ReadThroughCache{storage: storage}
 }
 
-func (c ReadThroughCache) GetAsReader(
-	ff FetchFunction, cachekey string, maxage time.Duration) (io.Reader, error) {
-	contents, err := c.Get(ff, cachekey, maxage)
-	if err != nil {
-		return nil, err
-	}
-
-	return strings.NewReader(contents), nil
-}
-
+// Gets the contents of a resource, from either the cach or by executing the
+// fetch function (depending on maxage).
+//
+// If we alraedy have an entry in cache with the key 'cachekey' and whos age
+// is less than 'maxage' this will return the cached data.  Otherwsie, this will
+// execute the FetchFunction to fetch the data, and store it in the cache.
 func (c ReadThroughCache) Get(
 	ff FetchFunction, cachekey string, maxage time.Duration) (string, error) {
 	age := c.storage.Age(cachekey)
@@ -44,6 +43,18 @@ func (c ReadThroughCache) Get(
 	}
 
 	return c.storage.Get(cachekey)
+}
+
+// Same as 'Get' (see above), execpt returns the data as an 'io.Reader' rather
+// than a string.
+func (c ReadThroughCache) GetAsReader(
+	ff FetchFunction, cachekey string, maxage time.Duration) (io.Reader, error) {
+	contents, err := c.Get(ff, cachekey, maxage)
+	if err != nil {
+		return nil, err
+	}
+
+	return strings.NewReader(contents), nil
 }
 
 type KVStore interface {
