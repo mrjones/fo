@@ -46,7 +46,7 @@ func TestTwoTeamsReverseStats(t *testing.T) {
 	}
 
 	score := scoreLeague(stats, map[StatID]struct{}{
-		B_HOME_RUNS:   struct{}{},
+		B_HOME_RUNS:          struct{}{},
 		P_EARNED_RUN_AVERAGE: struct{}{},
 	})
 
@@ -65,7 +65,7 @@ func TestIgnoresNonCountingStats(t *testing.T) {
 	}
 
 	score := scoreLeague(stats, map[StatID]struct{}{
-		B_HOME_RUNS:   struct{}{},
+		B_HOME_RUNS: struct{}{},
 	})
 
 	if score[1] != 2 {
@@ -78,12 +78,12 @@ func TestIgnoresNonCountingStats(t *testing.T) {
 
 func TestHandlesTies(t *testing.T) {
 	stats := map[TeamID]StatLine{
-	1: StatLine{B_HOME_RUNS: 5},
-  2: StatLine{B_HOME_RUNS: 5},
+		1: StatLine{B_HOME_RUNS: 5},
+		2: StatLine{B_HOME_RUNS: 5},
 	}
 
 	score := scoreLeague(stats, map[StatID]struct{}{
-		B_HOME_RUNS:   struct{}{},
+		B_HOME_RUNS: struct{}{},
 	})
 
 	if score[1] != 1.5 {

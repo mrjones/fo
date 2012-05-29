@@ -1,21 +1,23 @@
 package main
 
 import (
-	"strconv"
 	"sort"
+	"strconv"
 )
 
 func scoreLeague(stats map[TeamID]StatLine, scoringCategories map[StatID]struct{}) map[TeamID]float32 {
 	rawStats := make(map[string]StatLine)
-	for k,v := range(stats) {
+	for k, v := range stats {
 		rawStats[strconv.Itoa(int(k))] = v
 	}
 
 	rawScores := score(rawStats, scoringCategories)
 	scores := make(map[TeamID]float32)
-	for k,v := range(rawScores) {
+	for k, v := range rawScores {
 		i, err := strconv.Atoi(k)
-		if err != nil { panic(err) }
+		if err != nil {
+			panic(err)
+		}
 		scores[TeamID(i)] = v
 	}
 
@@ -24,13 +26,13 @@ func scoreLeague(stats map[TeamID]StatLine, scoringCategories map[StatID]struct{
 
 func scoreTeam(stats map[PlayerID]StatLine, scoringCategories map[StatID]struct{}) map[PlayerID]float32 {
 	rawStats := make(map[string]StatLine)
-	for k,v := range(stats) {
+	for k, v := range stats {
 		rawStats[string(k)] = v
 	}
 
 	rawScores := score(rawStats, scoringCategories)
 	scores := make(map[PlayerID]float32)
-	for k,v := range(rawScores) {
+	for k, v := range rawScores {
 		scores[PlayerID(k)] = v
 	}
 
@@ -59,7 +61,7 @@ func scoreStat(stats map[string]StatLine, statid StatID) map[string]float32 {
 		score := float32(idx + 1)
 
 		// TODO(mrjones): more generic tiebreaking
-		if idx < numteams - 1 && slice[idx] == slice[idx + 1] {
+		if idx < numteams-1 && slice[idx] == slice[idx+1] {
 			score += .5
 		}
 		if lowerIsBetter(statid) {

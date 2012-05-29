@@ -45,7 +45,7 @@ func (fo *FO) Optimize() {
 func (fo *FO) projectPlayers(players []YahooPlayer, seasonComplete float32) map[PlayerID]StatLine {
 	result := make(map[PlayerID]StatLine)
 
-	for i := range(players) {
+	for i := range players {
 		id := PlayerID(players[i].FullName)
 		result[id] = fo.projections.GetStatLine(id)
 	}
@@ -70,7 +70,7 @@ func (fo *FO) projectRoster(roster []YahooPlayer, seasonComplete float32) StatLi
 
 type TeamLeaderEntry struct {
 	Score float32
-	ID PlayerID
+	ID    PlayerID
 }
 
 type TeamLeaders []TeamLeaderEntry
@@ -89,7 +89,7 @@ func (l TeamLeaders) Swap(i, j int) {
 
 func SortedLeaders(scores map[PlayerID]float32) TeamLeaders {
 	l := make(TeamLeaders, 0)
-	for pid, score := range(scores) {
+	for pid, score := range scores {
 		l = append(l, TeamLeaderEntry{Score: score, ID: pid})
 	}
 	sort.Sort(l)
@@ -98,7 +98,7 @@ func SortedLeaders(scores map[PlayerID]float32) TeamLeaders {
 
 func indexByName(players []YahooPlayer) map[PlayerID]YahooPlayer {
 	index := make(map[PlayerID]YahooPlayer)
-	for _, player := range(players) {
+	for _, player := range players {
 		index[PlayerID(player.FullName)] = player
 	}
 	return index
@@ -111,21 +111,21 @@ func (fo *FO) selectStarters(roster []YahooPlayer) map[Position][]YahooPlayer {
 	starters := make(map[Position][]YahooPlayer)
 	index := indexByName(roster)
 
-//	for i := range roster {
-//		for j := range roster[i].Position {
-//			pos := Position(roster[i].Position[j])
-//			if positionCounts[pos] > 0 {
-//				starters[pos] = append(starters[pos], roster[i])
-//				positionCounts[pos]--
-//			}
-//			break
-//		}
-//	}
+	//	for i := range roster {
+	//		for j := range roster[i].Position {
+	//			pos := Position(roster[i].Position[j])
+	//			if positionCounts[pos] > 0 {
+	//				starters[pos] = append(starters[pos], roster[i])
+	//				positionCounts[pos]--
+	//			}
+	//			break
+	//		}
+	//	}
 
-	for _, entry := range(leaders) {
+	for _, entry := range leaders {
 		player := index[entry.ID]
 		starting := false
-		for _, posStr := range(player.Position) {
+		for _, posStr := range player.Position {
 			pos := Position(posStr)
 			if positionCounts[pos] > 0 {
 				starters[pos] = append(starters[pos], player)

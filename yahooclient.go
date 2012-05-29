@@ -15,7 +15,7 @@ import (
 type YahooClient struct {
 	tokenFile string
 	oauth     *oauth.Consumer
-	cache  ReadThroughCache
+	cache     ReadThroughCache
 }
 
 type FantasyContent struct {
@@ -60,13 +60,13 @@ func oauthUrlFetcher(yc *YahooClient, url string) FetchFunction {
 }
 
 func (yc *YahooClient) cacheGet(key string, url string) (string, error) {
-	return yc.cache.Get(oauthUrlFetcher(yc, url), key, time.Hour * 24)
+	return yc.cache.Get(oauthUrlFetcher(yc, url), key, time.Hour*24)
 }
 
 func (yc *YahooClient) LeagueRosters() (*map[TeamID][]YahooPlayer, error) {
 	response, err := yc.cacheGet(
 		"league_rosters",
-		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/teams/roster");
+		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/teams/roster")
 
 	if err != nil {
 		return nil, err

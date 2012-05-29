@@ -22,7 +22,7 @@ func NewReadThroughCache(storage KVStore) ReadThroughCache {
 }
 
 func (c ReadThroughCache) GetAsReader(
-	  ff FetchFunction, cachekey string, maxage time.Duration) (io.Reader, error) {
+	ff FetchFunction, cachekey string, maxage time.Duration) (io.Reader, error) {
 	contents, err := c.Get(ff, cachekey, maxage)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,8 @@ func (c ReadThroughCache) GetAsReader(
 	return strings.NewReader(contents), nil
 }
 
-func (c ReadThroughCache) Get(ff FetchFunction, cachekey string, maxage time.Duration) (string, error) {
+func (c ReadThroughCache) Get(
+	ff FetchFunction, cachekey string, maxage time.Duration) (string, error) {
 	age := c.storage.Age(cachekey)
 	if age == nil || *age > maxage {
 		response, err := ff()
@@ -46,7 +47,7 @@ func (c ReadThroughCache) Get(ff FetchFunction, cachekey string, maxage time.Dur
 }
 
 type KVStore interface {
-	Put(k,v string) error
+	Put(k, v string) error
 	Get(k string) (v string, err error)
 	Age(k string) *time.Duration
 }
@@ -85,7 +86,7 @@ func (s FileKVStore) Age(k string) *time.Duration {
 }
 
 func fileAge(filename string) *time.Duration {
- 	file, err := os.Open(filename)
+	file, err := os.Open(filename)
 	if err != nil {
 		return nil
 	}
@@ -106,13 +107,13 @@ func fileAge(filename string) *time.Duration {
 //
 
 type MemKVStore struct {
-	kvs map[string]string
+	kvs  map[string]string
 	ages map[string]time.Time
 }
 
 func NewMemKVStore() MemKVStore {
 	return MemKVStore{
-		kvs: make(map[string]string),
+		kvs:  make(map[string]string),
 		ages: make(map[string]time.Time),
 	}
 }

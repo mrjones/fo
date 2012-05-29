@@ -108,9 +108,11 @@ func urlFetcher(url string) FetchFunction {
 func indexBattingStats() (*map[PlayerID]StatLine, error) {
 	cache := NewReadThroughCache(NewFileKVStore("./cache"))
 	cacheReader, err := cache.GetAsReader(
-		urlFetcher(BATTERS_URL), BATTERS_CSV, 24 * 30 * time.Hour)
+		urlFetcher(BATTERS_URL), BATTERS_CSV, 24*30*time.Hour)
 
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	return indexStats(cacheReader, mapColumnNameToBattingStat())
 }
@@ -118,9 +120,11 @@ func indexBattingStats() (*map[PlayerID]StatLine, error) {
 func indexPitchingStats() (*map[PlayerID]StatLine, error) {
 	cache := NewReadThroughCache(NewFileKVStore("./cache"))
 	cacheReader, err := cache.GetAsReader(
-		urlFetcher(PITCHERS_URL), PITCHERS_CSV, 24 * 30 * time.Hour)
+		urlFetcher(PITCHERS_URL), PITCHERS_CSV, 24*30*time.Hour)
 
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	return indexStats(cacheReader, mapColumnNameToPitchingStat())
 }
