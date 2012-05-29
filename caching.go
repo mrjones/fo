@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -84,6 +85,23 @@ func (s FileKVStore) Age(k string) *time.Duration {
 	return fileAge(s.filename(k))
 }
 
+func fileAge(filename string) *time.Duration {
+ 	file, err := os.Open(filename)
+	if err != nil {
+		return nil
+	}
+	defer file.Close()
+
+	fileinfo, err := file.Stat()
+	if err != nil {
+		return nil
+	}
+
+	age := time.Since(fileinfo.ModTime())
+
+	return &age
+}
+
 //
 // MemKVStore
 //
@@ -120,23 +138,9 @@ func (c MemKVStore) Age(k string) *time.Duration {
 	return nil
 }
 
-
-func fileAge(filename string) *time.Duration {
- 	file, err := os.Open(filename)
-	if err != nil {
-		return nil
-	}
-	defer file.Close()
-
-	fileinfo, err := file.Stat()
-	if err != nil {
-		return nil
-	}
-
-	age := time.Since(fileinfo.ModTime())
-
-	return &age
-}
+//
+// Handy utilities
+//
 
 func httpGetBody(url string) (string, error) {
 	response, err := http.Get(url)
