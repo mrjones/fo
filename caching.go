@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -21,8 +22,9 @@ func NewReadThroughCache(storage KVStore) ReadThroughCache {
 	return ReadThroughCache{storage: storage}
 }
 
-func (c ReadThroughCache) GetAsReader(ff FetchFunction, cachekey string, maxage time.Duration) (string, error) {
-	contents, err := Get(ff, cachekey, maxage)
+func (c ReadThroughCache) GetAsReader(
+	  ff FetchFunction, cachekey string, maxage time.Duration) (io.Reader, error) {
+	contents, err := c.Get(ff, cachekey, maxage)
 	if err != nil {
 		return nil, err
 	}

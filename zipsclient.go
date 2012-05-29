@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/csv"
-	"os"
+	"io"
+	"log"
 	"strconv"
+	"time"
 )
 
 const (
@@ -32,9 +34,6 @@ func (zc *ZipsClient) GetStatLine(player PlayerID) StatLine {
 }
 
 func NewZipsClient() (*ZipsClient, error) {
-	EnsureCache(BATTERS_URL, BATTERS_CSV)
-	EnsureCache(PITCHERS_URL, PITCHERS_CSV)
-
 	battingStats, err := indexBattingStats()
 	if err != nil {
 		return nil, err
@@ -99,21 +98,34 @@ func mapBattingStatToColumnIndex(
 	return statToColumnIndex
 }
 
+func urlFetcher(url string) FetchFunction {
+	return func() (string, error) {
+		log.Printf("Fetching URL: '%s'", url)
+		return httpGetBody(url)
+	}
+}
+
 func indexBattingStats() (*map[PlayerID]StatLine, error) {
-	return indexStats(BATTERS_CSV, mapColumnNameToBattingStat())
+	cache := NewReadThroughCache(NewFileKVStore("."))
+	cacheReader, err := cache.GetAsReader(
+		urlFetcher(BATTERS_URL), BATTERS_CSV, 24 * 30 * time.Hour)
+
+	if err != nil { return nil, err }
+
+	return indexStats(cacheReader, mapColumnNameToBattingStat())
 }
 
 func indexPitchingStats() (*map[PlayerID]StatLine, error) {
-	return indexStats(PITCHERS_CSV, mapColumnNameToPitchingStat())
+	cache := NewReadThroughCache(NewFileKVStore("."))
+	cacheReader, err := cache.GetAsReader(
+		urlFetcher(PITCHERS_URL), PITCHERS_CSV, 24 * 30 * time.Hour)
+
+	if err != nil { return nil, err }
+
+	return indexStats(cacheReader, mapColumnNameToPitchingStat())
 }
 
-func indexStats(filename string, columnNameToStat map[ColName]StatID) (*map[PlayerID]StatLine, error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
+func indexStats(f io.Reader, columnNameToStat map[ColName]StatID) (*map[PlayerID]StatLine, error) {
 	r := csv.NewReader(f)
 	r.TrailingComma = true // Ok to end in trailing comma
 	recs, err := r.ReadAll()
