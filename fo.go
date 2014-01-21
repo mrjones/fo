@@ -55,7 +55,11 @@ func (fo *FO) projectLeague(rosters *map[TeamID][]YahooPlayer) map[TeamID]StatLi
 func (fo *FO) scoreTrade(rosters *map[TeamID][]YahooPlayer, p1, p2 PlayerID) error {
 	beforeProjections := fo.projectLeague(rosters)
 	// copy?
-		err := trade(rosters, p1, p2)
+		err, t1, t2 := trade(rosters, p1, p2)
+	if err != nil {
+		return err
+	}
+		err, t1, t2 = trade(rosters, "Zack Cozart", "Justin Masterson")
 	if err != nil {
 		return err
 	}
@@ -64,6 +68,10 @@ func (fo *FO) scoreTrade(rosters *map[TeamID][]YahooPlayer, p1, p2 PlayerID) err
 	fmt.Printf("Before\n")
 	beforeScores := scoreLeague(beforeProjections, scoringCategories())
 	printScores(beforeScores)
+	fmt.Printf("TEAM %d: %s -> %s\n", t1, FormatBattingStats(beforeProjections[t1]), FormatBattingStats(afterProjections[t1]))
+	fmt.Printf("TEAM %d: %s -> %s\n", t1, FormatPitchingStats(beforeProjections[t1]), FormatPitchingStats(afterProjections[t1]))
+	fmt.Printf("TEAM %d: %s -> %s\n", t2, FormatBattingStats(beforeProjections[t2]), FormatBattingStats(afterProjections[t2]))
+	fmt.Printf("TEAM %d: %s -> %s\n", t2, FormatPitchingStats(beforeProjections[t2]), FormatPitchingStats(afterProjections[t2]))
 
 	fmt.Printf("After\n")
 	afterScores := scoreLeague(afterProjections, scoringCategories())
@@ -77,7 +85,7 @@ func (fo *FO) scoreTrade(rosters *map[TeamID][]YahooPlayer, p1, p2 PlayerID) err
 	return nil
 }
 
-func trade(rosters *map[TeamID][]YahooPlayer, p1, p2 PlayerID) error {
+func trade(rosters *map[TeamID][]YahooPlayer, p1, p2 PlayerID) (error, TeamID, TeamID) {
 	t1, i1 := TeamID(-1), -1
 	t2, i2 := TeamID(-1), -1
 	for team, roster := range(*rosters) {
@@ -92,14 +100,14 @@ func trade(rosters *map[TeamID][]YahooPlayer, p1, p2 PlayerID) error {
 	}
 
 	if t1 == -1 || i1 == -1 || t2 == -1 || i2 == 1 {
-		return fmt.Errorf("Bad lookup: %d %d %d %d", t1, i1, t2, i2)
+		return fmt.Errorf("Bad lookup: %d %d %d %d", t1, i1, t2, i2), -1, -1
 	}
 
 	fmt.Printf("Moving %s from team %d to team %d\n", p1, t1, t2)
 	fmt.Printf("Moving %s from team %d to team %d\n", p2, t2, t1)
 
 	(*rosters)[t1][i1], (*rosters)[t2][i2] = (*rosters)[t2][i2], (*rosters)[t1][i1]
-	return nil
+	return nil, t1, t2
 }
 
 func (fo *FO) projectPlayers(players []YahooPlayer, seasonComplete float32) map[PlayerID]StatLine {
