@@ -1,10 +1,12 @@
-package main
+package folib
 
 type ColIndex int
 type ColName string
 type PlayerID string
 type Stat float64
 type StatID int32
+
+type Position string
 
 type StatLine map[StatID]Stat
 
