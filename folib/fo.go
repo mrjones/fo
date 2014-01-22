@@ -203,17 +203,17 @@ func (fo *FO) selectStarters(roster []YahooPlayer) map[Position][]YahooPlayer {
 			if positionCounts[pos] > 0 {
 				starters[pos] = append(starters[pos], player)
 				positionCounts[pos]--
-//				fmt.Printf("%s is starting at %s\n", player.FullName, pos)
+				fmt.Printf("%s is starting at %s\n", player.FullName, pos)
 				starting = true
 				break
 			}
 		}
 		if !starting {
-//			fmt.Printf("%s is NOT starting\n", player.FullName)
+			fmt.Printf("%s is NOT starting\n", player.FullName)
 		}
 	}
 
-//	fmt.Println("---")
+	fmt.Println("---")
 
 	return starters
 }
