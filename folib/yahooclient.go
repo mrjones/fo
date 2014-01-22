@@ -52,6 +52,10 @@ type YahooLeague struct {
 	Id        int         `xml:"league_id"`
 }
 
+func (yc *YahooClient) Try(key, url string) (string, error){
+	return yc.cacheGet(key, url)
+}
+
 func oauthUrlFetcher(yc *YahooClient, url string) FetchFunction {
 	return func() (string, error) {
 		log.Printf("Fetching (via OAuth): '%s'", url)
@@ -66,7 +70,8 @@ func (yc *YahooClient) cacheGet(key string, url string) (string, error) {
 func (yc *YahooClient) LeagueRosters() (*map[TeamID][]YahooPlayer, error) {
 	response, err := yc.cacheGet(
 		"league_rosters",
-		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/teams/roster")
+		"http://fantasysports.yahooapis.com/fantasy/v2/league/308.l.21006/teams/roster")
+//		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/teams/roster")
 
 	if err != nil {
 		return nil, err
@@ -92,7 +97,8 @@ func (yc *YahooClient) LeagueRosters() (*map[TeamID][]YahooPlayer, error) {
 func (yc *YahooClient) MyRoster() (*[]YahooPlayer, error) {
 	response, err := yc.cacheGet(
 		"my_roster",
-		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
+		"http://fantasysports.yahooapis.com/fantasy/v2/team/308.l.21006.t.6/roster")
+//		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
 
 	if err != nil {
 		return nil, err
@@ -128,7 +134,8 @@ func mapYahooIdToStatId() map[int]StatID {
 func (yc *YahooClient) CurrentStats() (*map[TeamID]StatLine, error) {
 	response, err := yc.cacheGet(
 		"current_stats",
-		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/standings")
+		"http://fantasysports.yahooapis.com/fantasy/v2/league/308.l.21006/standings")
+//		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/standings")
 
 	if err != nil {
 		return nil, err

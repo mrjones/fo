@@ -20,6 +20,26 @@ func NewFO(yahoo *YahooClient, projections StatsClient) *FO {
 }
 
 func (fo *FO) Optimize() {
+	log.Println("folib.optimize")
+	
+//	b, err := fo.yahoo.Try(
+//		"keys",
+//		"http://fantasysports.yahooapis.com/fantasy/v2/users;use_login=1/games")
+
+//	b, err := fo.yahoo.Try(
+//		"mlb",
+//		"http://fantasysports.yahooapis.com/fantasy/v2/league/308.l.21006")
+
+//	b, err := fo.yahoo.Try(
+//		"nfl",
+//		"http://fantasysports.yahooapis.com/fantasy/v2/league/nfl.l.297694")
+
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+
+//	log.Println(b);
+
 	rosters, err := fo.yahoo.LeagueRosters()
 	if err != nil {
 		log.Fatal(err)
@@ -34,7 +54,7 @@ func (fo *FO) Optimize() {
 //	if err != nil {
 //		log.Fatal(err)
 //	}
-//
+
 //	teamProjections := projectLeague(rosters)
 //
 //	fmt.Printf("Projections\n")
@@ -56,10 +76,6 @@ func (fo *FO) scoreTrade(rosters *map[TeamID][]YahooPlayer, p1, p2 PlayerID) err
 	beforeProjections := fo.projectLeague(rosters)
 	// copy?
 		err, t1, t2 := trade(rosters, p1, p2)
-	if err != nil {
-		return err
-	}
-		err, t1, t2 = trade(rosters, "Zack Cozart", "Justin Masterson")
 	if err != nil {
 		return err
 	}
