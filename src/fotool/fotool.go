@@ -120,6 +120,14 @@ func main() {
 			fmt.Printf("%d. %s %s\n", i, player.PositionType, player.FullName)
 		}
 		
+		statline, err := yahooclient.GetStats(players[0].PlayerKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for statid, val := range statline {
+			fmt.Printf("%d = %f\n", statid, val)
+		}
 
 	} else if *action == "interactive" {
 		yahooclient := loadYahooClientOrDie(*consumerKey, *consumerSecret, *tokenFile)

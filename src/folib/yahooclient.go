@@ -95,6 +95,10 @@ func (yc *YahooClient) GetLeagues(gameKey string) ([]YahooLeague, error) {
 	return data.Users[0].Games[0].Leagues, nil
 }
 
+type listTeamsReply struct {
+	Teams []YahooTeam `xml:"leagues>league>teams>team"`
+}
+
 func (yc* YahooClient) GetTeams(leagueKey string) ([]YahooTeam, error) {
 	url := fmt.Sprintf("http://fantasysports.yahooapis.com/fantasy/v2/leagues;league_keys=%s/teams", leagueKey)
 
@@ -103,7 +107,7 @@ func (yc* YahooClient) GetTeams(leagueKey string) ([]YahooTeam, error) {
 		return []YahooTeam{}, err
 	}
 
-	var data ListTeamsReply
+	var data listTeamsReply
 	err = xml.Unmarshal([]byte(body), &data)
 	if err != nil {
 		return []YahooTeam{}, err
@@ -112,21 +116,59 @@ func (yc* YahooClient) GetTeams(leagueKey string) ([]YahooTeam, error) {
 	return data.Teams, nil
 }
 
-func (yc* YahooClient) GetRoster(teamId string) ([]YahooPlayer, error) {
-	url := fmt.Sprintf("http://fantasysports.yahooapis.com/fantasy/v2/team/%s/roster", teamId)
+type getRosterReply struct {
+	Players []YahooPlayer `xml:"team>roster>players>player"`
+}
+
+func (yc* YahooClient) GetRoster(teamKey string) ([]YahooPlayer, error) {
+	url := fmt.Sprintf("http://fantasysports.yahooapis.com/fantasy/v2/team/%s/roster", teamKey)
 
 	body, err := yc.Get(url)
 	if err != nil {
 		return []YahooPlayer{}, err
 	}
 
-	var data GetRosterReply
+	var data getRosterReply
 	err = xml.Unmarshal([]byte(body), &data)
 	if err != nil {
 		return []YahooPlayer{}, err
 	}
 
 	return data.Players, nil	
+}
+
+type getStatsReply struct {
+	Stats []YahooStat `xml:"player>player_stats>stats>stat"`
+}
+
+func (yc* YahooClient) GetStats(playerKey string) (StatLine, error) {
+	url := fmt.Sprintf("http://fantasysports.yahooapis.com/fantasy/v2/player/%s/stats", playerKey)
+
+	body, err := yc.Get(url)
+	if err != nil {
+		return StatLine{}, err
+	}
+
+	var data getStatsReply
+	err = xml.Unmarshal([]byte(body), &data)
+	if err != nil {
+		return StatLine{}, err
+	}
+
+	statline := StatLine{}
+	yahooIdToStatIdMap := mapYahooIdToStatId()
+	for _, ystat := range(data.Stats) {
+		statid, ok := yahooIdToStatIdMap[ystat.ID]
+		if ok {
+			statval, err := strconv.ParseFloat(ystat.Value, 64)
+			if err != nil {
+				return nil, err
+			}
+			statline[statid] = Stat(statval)
+		}
+	}
+
+	return statline, nil
 }
 
 // old api (hardcoded)
@@ -246,14 +288,6 @@ type FantasyContent struct {
 	Users  []YahooUser `xml:"users>user"`
 }
 
-type ListTeamsReply struct {
-	Teams []YahooTeam `xml:"leagues>league>teams>team"`
-}
-
-type GetRosterReply struct {
-	Players []YahooPlayer `xml:"team>roster>players>player"`
-}
-
 type YahooUser struct {
   Games []YahooGame `xml:"games>game"`
 }
@@ -275,16 +309,16 @@ type YahooTeam struct {
 
 	Roster []YahooPlayer `xml:"roster>players>player"`
 
-	Stats []YahooTeamStats `xml:"team_stats>stats>stat"`
+	Stats []YahooStat `xml:"team_stats>stats>stat"`
 }
 
-type YahooTeamStats struct {
+type YahooStat struct {
 	ID    int    `xml:"stat_id"`
 	Value string `xml:"value"`
 }
 
 type YahooPlayer struct {
-	Key          string   `xml:"player_key"`
+	PlayerKey    string   `xml:"player_key"`
 	FullName     string   `xml:"name>full"`
 	PositionType string   `xml:"position_type"`
 	Position     []string `xml:"eligible_positions>position"`
