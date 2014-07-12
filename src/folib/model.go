@@ -29,6 +29,7 @@ const (
 	B_STRIKE_OUTS     StatID = 14
 	B_TRIPLES         StatID = 15
 	B_WALKS           StatID = 16
+	B_SINGLES         StatID = 17
 
 	P_EARNED_RUNS        StatID = 1001
 	P_EARNED_RUN_AVERAGE StatID = 1002
@@ -44,6 +45,8 @@ const (
 	P_WALKS              StatID = 1012
 	P_WHIP               StatID = 1013
 	P_WINS               StatID = 1014
+	P_BATTERS_FACED      StatID = 1015
+	P_SAVE_CHANCES       StatID = 1016
 )
 
 func isRateStat(s StatID) bool {

@@ -352,19 +352,39 @@ func (yc *YahooClient) cacheGet(key string, url string) (string, error) {
 }
 
 
+// yurl http://fantasysports.yahooapis.com/fantasy/v2/game/328/stat_categories
 func mapYahooIdToStatId() map[int]StatID {
 	return map[int]StatID{
+		1:  B_GAMES,
+		6:  B_AT_BATS,
 		7:  B_RUNS,
 		12: B_HOME_RUNS,
 		13: B_RUNS_BATTED_IN,
 		16: B_STOLEN_BASES,
 		3:  B_BATTING_AVG,
+		65: B_PLATE_APPS,
+		4: B_ON_BASE_PCT,
+		5: B_SLUGGING,
+		9: B_SINGLES,
+		10: B_DOUBLES,
+		11: B_TRIPLES,
+		17: B_CAUGHT_STEALING,
+		18: B_WALKS,
+		21: B_STRIKE_OUTS,
+
 		50: P_INNINGS,
 		28: P_WINS,
 		32: P_SAVES,
 		42: P_STRIKE_OUTS,
 		26: P_EARNED_RUN_AVERAGE,
 		27: P_WHIP,
+		34: P_HITS,
+		35: P_BATTERS_FACED,
+		36: P_RUNS,
+		37: P_EARNED_RUNS,
+		38: P_HOME_RUNS,
+		39: P_WALKS,
+		47: P_SAVE_CHANCES,
 	}
 }
 

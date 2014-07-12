@@ -117,18 +117,18 @@ func main() {
 		}
 
 		for i, player := range(players) {
-			fmt.Printf("%d. %s %s\n", i, player.PositionType, player.FullName)
+			metadata := ""
+			if player.PositionType == "P" {
+				statline, err := yahooclient.GetStats(player.PlayerKey)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				metadata = fmt.Sprintf("K pct =  %f", statline[folib.P_STRIKE_OUTS] / statline[folib.P_BATTERS_FACED])
+			}
+			fmt.Printf("%d. %s %s %s\n", i, player.PositionType, player.FullName, metadata)
 		}
 		
-		statline, err := yahooclient.GetStats(players[0].PlayerKey)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for statid, val := range statline {
-			fmt.Printf("%d = %f\n", statid, val)
-		}
-
 	} else if *action == "interactive" {
 		yahooclient := loadYahooClientOrDie(*consumerKey, *consumerSecret, *tokenFile)
 
