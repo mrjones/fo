@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./folib"
+	"folib"
 
 	"flag"
 	"fmt"
@@ -35,21 +35,34 @@ func main() {
 		"",
 		"A file to stash the auth token")
 
+	var action *string = flag.String(
+		"action",
+		"optimize",
+		"What to do")
+
 	flag.Parse()
 
-	if len(*consumerKey) == 0 || len(*consumerSecret) == 0 {
-		fmt.Println("You must set the --consumerkey and --consumersecret flags.")
-		fmt.Println("---")
-		Usage()
-		os.Exit(1)
-	}
+	if *action == "optimize" {
+		if len(*consumerKey) == 0 || len(*consumerSecret) == 0 {
+			fmt.Println("You must set the --consumerkey and --consumersecret flags.")
+			fmt.Println("---")
+			Usage()
+			os.Exit(1)
+		}
 
-	yahooclient := folib.NewYahooClient(*consumerKey, *consumerSecret, *tokenFile)
-	zipsclient, err := folib.NewZipsClient()
-	if err != nil {
-		log.Fatal(err)
-	}
+		yahooclient := folib.NewYahooClient(*consumerKey, *consumerSecret, *tokenFile)
+		zipsclient, err := folib.NewZipsClient()
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	fo := folib.NewFO(yahooclient, zipsclient)
-	fo.Optimize()
+		fo := folib.NewFO(yahooclient, zipsclient)
+		fo.Optimize()
+	} else if *action == "fg" {
+		_, err := folib.NewFanGraphsClient()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	}
 }
