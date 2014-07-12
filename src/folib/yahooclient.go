@@ -32,7 +32,7 @@ func NewYahooClient(consumerKey, consumerSecret, tokenFile string) *YahooClient 
 }
 
 func (yc *YahooClient) Get(url string) (string, error) {
-	fmt.Printf("Getting '%s'\n", url)
+//	fmt.Printf("Getting '%s'\n", url)
 	token, err := yc.getAccessToken()
 	if err != nil {
 		return "", err
@@ -161,10 +161,9 @@ func (yc* YahooClient) GetStats(playerKey string) (StatLine, error) {
 		statid, ok := yahooIdToStatIdMap[ystat.ID]
 		if ok {
 			statval, err := strconv.ParseFloat(ystat.Value, 64)
-			if err != nil {
-				return nil, err
+			if err == nil {
+				statline[statid] = Stat(statval)
 			}
-			statline[statid] = Stat(statval)
 		}
 	}
 

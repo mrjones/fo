@@ -118,15 +118,22 @@ func main() {
 
 		for i, player := range(players) {
 			metadata := ""
-			if player.PositionType == "P" {
-				statline, err := yahooclient.GetStats(player.PlayerKey)
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				metadata = fmt.Sprintf("K pct =  %f", statline[folib.P_STRIKE_OUTS] / statline[folib.P_BATTERS_FACED])
+			statline, err := yahooclient.GetStats(player.PlayerKey)
+			if err != nil {
+				log.Fatal(err)
 			}
-			fmt.Printf("%d. %s %s %s\n", i, player.PositionType, player.FullName, metadata)
+
+			if player.PositionType == "P" {
+				metadata = fmt.Sprintf("K%%:%f", statline[folib.P_STRIKE_OUTS] / statline[folib.P_BATTERS_FACED])
+			} else {
+				metadata = fmt.Sprintf("HR/G:%f R/G:%f RBI/G:%f SB/G:%f",
+					statline[folib.B_HOME_RUNS] / statline[folib.B_GAMES],
+					statline[folib.B_RUNS] / statline[folib.B_GAMES],
+					statline[folib.B_RUNS_BATTED_IN] / statline[folib.B_GAMES],
+					statline[folib.B_STOLEN_BASES] / statline[folib.B_GAMES])
+					
+			}
+			fmt.Printf("%2d. %s %-20s %s\n", i, player.PositionType, player.FullName, metadata)
 		}
 		
 	} else if *action == "interactive" {
