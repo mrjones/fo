@@ -109,8 +109,24 @@ func (yc* YahooClient) GetTeams(leagueKey string) ([]YahooTeam, error) {
 		return []YahooTeam{}, err
 	}
 
-	
 	return data.Teams, nil
+}
+
+func (yc* YahooClient) GetRoster(teamId string) ([]YahooPlayer, error) {
+	url := fmt.Sprintf("http://fantasysports.yahooapis.com/fantasy/v2/team/%s/roster", teamId)
+
+	body, err := yc.Get(url)
+	if err != nil {
+		return []YahooPlayer{}, err
+	}
+
+	var data GetRosterReply
+	err = xml.Unmarshal([]byte(body), &data)
+	if err != nil {
+		return []YahooPlayer{}, err
+	}
+
+	return data.Players, nil	
 }
 
 // old api (hardcoded)
@@ -232,6 +248,10 @@ type FantasyContent struct {
 
 type ListTeamsReply struct {
 	Teams []YahooTeam `xml:"leagues>league>teams>team"`
+}
+
+type GetRosterReply struct {
+	Players []YahooPlayer `xml:"team>roster>players>player"`
 }
 
 type YahooUser struct {

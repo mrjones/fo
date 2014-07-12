@@ -101,13 +101,25 @@ func main() {
 			log.Fatal(err)
 		}
 
+		teamidx := 0
 		for i, team := range(teams) {
 			icon := ""
 			if team.IsMyTeam == 1 {
+				teamidx = i
 				icon = "*"
 			}
 			fmt.Printf("%d. %s %s\n", i, team.Name, icon)
 		}
+
+		players, err := yahooclient.GetRoster(teams[teamidx].TeamKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for i, player := range(players) {
+			fmt.Printf("%d. %s %s\n", i, player.PositionType, player.FullName)
+		}
+		
 
 	} else if *action == "interactive" {
 		yahooclient := loadYahooClientOrDie(*consumerKey, *consumerSecret, *tokenFile)
