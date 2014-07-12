@@ -12,124 +12,49 @@ import (
 	"github.com/mrjones/oauth"
 )
 
-type YahooClient struct {
-	tokenFile string
-	oauth     *oauth.Consumer
-	cache     ReadThroughCache
-}
+//
+// API
+//
 
-type FantasyContent struct {
-	Team   YahooTeam   `xml:"team"`
-	League YahooLeague `xml:"league"`
-}
-
-type YahooTeam struct {
-	Name    string `xml:"name"`
-	TeamKey string `xml:"team_key"`
-	TeamId  TeamID `xml:"team_id"`
-
-	Roster []YahooPlayer `xml:"roster>players>player"`
-
-	Stats []YahooTeamStats `xml:"team_stats>stats>stat"`
-}
-
-type YahooTeamStats struct {
-	ID    int    `xml:"stat_id"`
-	Value string `xml:"value"`
-}
-
-type YahooPlayer struct {
-	Key          string   `xml:"player_key"`
-	FullName     string   `xml:"name>full"`
-	PositionType string   `xml:"position_type"`
-	Position     []string `xml:"eligible_positions>position"`
-}
-
-type YahooLeague struct {
-	Teams     []YahooTeam `xml:"standings>teams>team"`
-	Teams2    []YahooTeam `xml:"teams>team"` // OMG :(
-	LeagueKey string      `xml:"league_key"`
-	Id        int         `xml:"league_id"`
-}
-
-func (yc *YahooClient) Try(key, url string) (string, error){
-	return yc.cacheGet(key, url)
-}
-
-func oauthUrlFetcher(yc *YahooClient, url string) FetchFunction {
-	return func() (string, error) {
-		log.Printf("Fetching (via OAuth): '%s'", url)
-		return yc.Get(url)
+func NewYahooClient(consumerKey, consumerSecret, tokenFile string) *YahooClient {
+	return &YahooClient{
+		tokenFile: tokenFile,
+		oauth: oauth.NewConsumer(
+			consumerKey,
+			consumerSecret,
+			oauth.ServiceProvider{
+				RequestTokenUrl:   "https://api.login.yahoo.com/oauth/v2/get_request_token",
+				AuthorizeTokenUrl: "https://api.login.yahoo.com/oauth/v2/request_auth",
+				AccessTokenUrl:    "https://api.login.yahoo.com/oauth/v2/get_token",
+			}),
+		cache: NewReadThroughCache(NewFileKVStore("./cache")),
 	}
 }
 
-func (yc *YahooClient) cacheGet(key string, url string) (string, error) {
-	return yc.cache.Get(oauthUrlFetcher(yc, url), key, time.Hour*24)
-}
+func (yc *YahooClient) Get(url string) (string, error) {
+	token, err := yc.getAccessToken()
+	if err != nil {
+		return "", err
+	}
 
-func (yc *YahooClient) LeagueRosters() (*map[TeamID][]YahooPlayer, error) {
-	response, err := yc.cacheGet(
-		"league_rosters",
-		"http://fantasysports.yahooapis.com/fantasy/v2/league/308.l.21006/teams/roster")
-//		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/teams/roster")
+	response, err := yc.oauth.Get(
+		url,
+		map[string]string{},
+		token)
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
+	defer response.Body.Close()
 
-	//	fmt.Println(response)
-
-	var data FantasyContent
-	err = xml.Unmarshal([]byte(response), &data)
+	bits, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	rosters := map[TeamID][]YahooPlayer{}
-	for i := range data.League.Teams2 {
-		team := data.League.Teams2[i]
-		rosters[team.TeamId] = team.Roster
-	}
-
-	return &rosters, nil
+	return string(bits), nil
 }
 
-func (yc *YahooClient) MyRoster() (*[]YahooPlayer, error) {
-	response, err := yc.cacheGet(
-		"my_roster",
-		"http://fantasysports.yahooapis.com/fantasy/v2/team/308.l.21006.t.6/roster")
-//		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
-
-	if err != nil {
-		return nil, err
-	}
-
-	//	fmt.Println(response)
-
-	var data FantasyContent
-	err = xml.Unmarshal([]byte(response), &data)
-	if err != nil {
-		return nil, err
-	}
-
-	return &data.Team.Roster, nil
-}
-
-func mapYahooIdToStatId() map[int]StatID {
-	return map[int]StatID{
-		7:  B_RUNS,
-		12: B_HOME_RUNS,
-		13: B_RUNS_BATTED_IN,
-		16: B_STOLEN_BASES,
-		3:  B_BATTING_AVG,
-		50: P_INNINGS,
-		28: P_WINS,
-		32: P_SAVES,
-		42: P_STRIKE_OUTS,
-		26: P_EARNED_RUN_AVERAGE,
-		27: P_WHIP,
-	}
-}
 
 func (yc *YahooClient) CurrentStats() (*map[TeamID]StatLine, error) {
 	response, err := yc.cacheGet(
@@ -181,51 +106,141 @@ func (yc *YahooClient) MyStats() (*StatLine, error) {
 	return &mystats, nil
 }
 
-func NewYahooClient(consumerKey, consumerSecret, tokenFile string) *YahooClient {
-	return &YahooClient{
-		tokenFile: tokenFile,
-		oauth: oauth.NewConsumer(
-			consumerKey,
-			consumerSecret,
-			oauth.ServiceProvider{
-				RequestTokenUrl:   "https://api.login.yahoo.com/oauth/v2/get_request_token",
-				AuthorizeTokenUrl: "https://api.login.yahoo.com/oauth/v2/request_auth",
-				AccessTokenUrl:    "https://api.login.yahoo.com/oauth/v2/get_token",
-			}),
-		cache: NewReadThroughCache(NewFileKVStore("./cache")),
+func (yc *YahooClient) LeagueRosters() (*map[TeamID][]YahooPlayer, error) {
+	response, err := yc.cacheGet(
+		"league_rosters",
+		"http://fantasysports.yahooapis.com/fantasy/v2/league/308.l.21006/teams/roster")
+//		"http://fantasysports.yahooapis.com/fantasy/v2/league/mlb.l.5181/teams/roster")
+
+	if err != nil {
+		return nil, err
+	}
+
+	//	fmt.Println(response)
+
+	var data FantasyContent
+	err = xml.Unmarshal([]byte(response), &data)
+	if err != nil {
+		return nil, err
+	}
+
+	rosters := map[TeamID][]YahooPlayer{}
+	for i := range data.League.Teams2 {
+		team := data.League.Teams2[i]
+		rosters[team.TeamId] = team.Roster
+	}
+
+	return &rosters, nil
+}
+
+func (yc *YahooClient) MyRoster() (*[]YahooPlayer, error) {
+	response, err := yc.cacheGet(
+		"my_roster",
+		"http://fantasysports.yahooapis.com/fantasy/v2/team/308.l.21006.t.6/roster")
+//		"http://fantasysports.yahooapis.com/fantasy/v2/team/mlb.l.5181.t.6/roster")
+
+	if err != nil {
+		return nil, err
+	}
+
+	//	fmt.Println(response)
+
+	var data FantasyContent
+	err = xml.Unmarshal([]byte(response), &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data.Team.Roster, nil
+}
+
+//
+// Structures
+//
+
+type YahooClient struct {
+	tokenFile string
+	oauth     *oauth.Consumer
+	cache     ReadThroughCache
+}
+
+type FantasyContent struct {
+	Team   YahooTeam   `xml:"team"`
+	League YahooLeague `xml:"league"`
+}
+
+type YahooTeam struct {
+	Name    string `xml:"name"`
+	TeamKey string `xml:"team_key"`
+	TeamId  TeamID `xml:"team_id"`
+
+	Roster []YahooPlayer `xml:"roster>players>player"`
+
+	Stats []YahooTeamStats `xml:"team_stats>stats>stat"`
+}
+
+type YahooTeamStats struct {
+	ID    int    `xml:"stat_id"`
+	Value string `xml:"value"`
+}
+
+type YahooPlayer struct {
+	Key          string   `xml:"player_key"`
+	FullName     string   `xml:"name>full"`
+	PositionType string   `xml:"position_type"`
+	Position     []string `xml:"eligible_positions>position"`
+}
+
+type YahooLeague struct {
+	Teams     []YahooTeam `xml:"standings>teams>team"`
+	Teams2    []YahooTeam `xml:"teams>team"` // OMG :(
+	LeagueKey string      `xml:"league_key"`
+	Id        int         `xml:"league_id"`
+}
+
+//
+// Implementation
+//
+
+func (yc *YahooClient) Try(key, url string) (string, error){
+	return yc.cacheGet(key, url)
+}
+
+func oauthUrlFetcher(yc *YahooClient, url string) FetchFunction {
+	return func() (string, error) {
+		log.Printf("Fetching (via OAuth): '%s'", url)
+		return yc.Get(url)
 	}
 }
 
-func (yc *YahooClient) Get(url string) (string, error) {
-	token, err := yc.getAccessToken()
-	if err != nil {
-		return "", err
-	}
-
-	response, err := yc.oauth.Get(
-		url,
-		map[string]string{},
-		token)
-
-	if err != nil {
-		return "", err
-	}
-	defer response.Body.Close()
-
-	bits, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return "", err
-	}
-
-	return string(bits), nil
+func (yc *YahooClient) cacheGet(key string, url string) (string, error) {
+	return yc.cache.Get(oauthUrlFetcher(yc, url), key, time.Hour*24)
 }
+
+
+func mapYahooIdToStatId() map[int]StatID {
+	return map[int]StatID{
+		7:  B_RUNS,
+		12: B_HOME_RUNS,
+		13: B_RUNS_BATTED_IN,
+		16: B_STOLEN_BASES,
+		3:  B_BATTING_AVG,
+		50: P_INNINGS,
+		28: P_WINS,
+		32: P_SAVES,
+		42: P_STRIKE_OUTS,
+		26: P_EARNED_RUN_AVERAGE,
+		27: P_WHIP,
+	}
+}
+
 
 func (yc *YahooClient) getAccessToken() (*oauth.AccessToken, error) {
 	savedBytes, err := ioutil.ReadFile(yc.tokenFile)
 	savedString := string(savedBytes)
 	var accessToken *oauth.AccessToken
 	if err == nil && len(savedString) > 0 {
-		accessToken, err = AccessTokenFromPlainString(savedString)
+		accessToken, err = accessTokenFromPlainString(savedString)
 
 		if err != nil {
 			return nil, err
@@ -245,17 +260,17 @@ func (yc *YahooClient) getAccessToken() (*oauth.AccessToken, error) {
 		if err != nil {
 			return nil, err
 		}
-		ioutil.WriteFile(yc.tokenFile, []byte(ToPlainString(*accessToken)), 0644)
+		ioutil.WriteFile(yc.tokenFile, []byte(toPlainString(*accessToken)), 0644)
 	}
 
 	return accessToken, nil
 }
 
-func ToPlainString(t oauth.AccessToken) string {
+func toPlainString(t oauth.AccessToken) string {
 	return fmt.Sprintf("%d|%s|%d|%s", len(t.Token), t.Token, len(t.Secret), t.Secret)
 }
 
-func AccessTokenFromPlainString(s string) (*oauth.AccessToken, error) {
+func accessTokenFromPlainString(s string) (*oauth.AccessToken, error) {
 	firstBar := strings.Index(s, "|")
 	if firstBar == -1 {
 		return nil, fmt.Errorf("Malformed input [%s]. Couldn't find first bar.", s)
