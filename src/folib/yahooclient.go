@@ -303,6 +303,36 @@ func accessTokenFromPlainString(s string) (*oauth.AccessToken, error) {
 	return &oauth.AccessToken{Token: token, Secret: secret}, nil
 }
 
+// yurl http://fantasysports.yahooapis.com/fantasy/v2/game/mlb
+//   <game_key>328</game_key>
+//
+// yurl http://fantasysports.yahooapis.com/fantasy/v2/users;use_login=1/games;game_keys=328/leagues
+//   <league_key>328.l.1305</league_key>
+//   <league_id>1305</league_id>
+//   <name>Princeton Sucks</name>
+//
+// yurl http://fantasysports.yahooapis.com/fantasy/v2/leagues;league_keys=328.l.1305
+// ...
+//
+// yurl http://fantasysports.yahooapis.com/fantasy/v2/leagues;league_keys=328.l.1305/teams
+//    <team>
+//      <team_key>328.l.1305.t.5</team_key>
+//      <team_id>5</team_id>
+//      <name>Curse of Andino</name>
+//      <is_owned_by_current_login>1</is_owned_by_current_login>
+//
+// yurl http://fantasysports.yahooapis.com/fantasy/v2/team/328.l.1305.t.5/roster
+//   <player>
+//     <player_key>328.p.8395</player_key>
+//     <player_id>8395</player_id>
+//     <name>
+//       <full>Matt Wieters</full>
+//
+// yurl http://fantasysports.yahooapis.com/fantasy/v2/player/328.p.8395/metadata
+// yurl http://fantasysports.yahooapis.com/fantasy/v2/player/328.p.8395/stats
+
+
+
 // Full Docs:
 // http://developer.yahoo.com/fantasysports/guide/index.html
 //

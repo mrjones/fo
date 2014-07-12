@@ -3,9 +3,11 @@ package main
 import (
 	"folib"
 
+	"bufio"
 	"flag"
 	"fmt"
 	"log"
+	"strings"
 	"os"
 )
 
@@ -17,6 +19,17 @@ func Usage() {
 	fmt.Println("")
 	fmt.Println("In order to get your consumerkey and consumersecret, you must register an 'app' at twitter.com:")
 	fmt.Println("https://dev.twitter.com/apps/new")
+}
+
+func loadYahooClientOrDie(key, secret, tokenFile string) *folib.YahooClient {
+	if len(key) == 0 || len(secret) == 0 {
+		fmt.Println("You must set the --consumerkey and --consumersecret flags.")
+		fmt.Println("---")
+		Usage()
+		os.Exit(1)
+	}
+
+	return folib.NewYahooClient(key, secret, tokenFile)
 }
 
 func main() {
@@ -43,21 +56,59 @@ func main() {
 	flag.Parse()
 
 	if *action == "optimize" {
-		if len(*consumerKey) == 0 || len(*consumerSecret) == 0 {
-			fmt.Println("You must set the --consumerkey and --consumersecret flags.")
-			fmt.Println("---")
-			Usage()
-			os.Exit(1)
-		}
-
-		yahooclient := folib.NewYahooClient(*consumerKey, *consumerSecret, *tokenFile)
 		zipsclient, err := folib.NewZipsClient()
 		if err != nil {
 			log.Fatal(err)
 		}
 
+		yahooclient := loadYahooClientOrDie(*consumerKey, *consumerSecret, *tokenFile)
 		fo := folib.NewFO(yahooclient, zipsclient)
 		fo.Optimize()
+	} else if *action == "interactive" {
+		yahooclient := loadYahooClientOrDie(*consumerKey, *consumerSecret, *tokenFile)
+
+		for {
+			fmt.Print("> ");
+			input := ""
+
+			bio := bufio.NewReader(os.Stdin)
+
+			done := false
+			for !done {
+				buf, hasMoreInLine, err := bio.ReadLine()
+				input = input + string(buf)
+
+				if err != nil {
+					fmt.Printf("ERROR: %s\n", err.Error())
+					done = true
+				}
+
+				if !hasMoreInLine {
+					done = true
+				}
+			}
+
+			fmt.Printf("input is '%s'\n", input)
+			inputParts := strings.Split(input, " ")
+			fmt.Printf("command is '%s'\n", inputParts[0])
+
+			switch inputParts[0] {
+			case "quit", "exit":
+				os.Exit(0)
+			case "yurl":
+				if len(inputParts) < 2 {
+					fmt.Println("usage: yurl <url>")
+					break
+				}
+				fmt.Printf("Fetching yahoo url '%s'\n", inputParts[1])
+				resp, err := yahooclient.Get(inputParts[1])
+				if err != nil {
+					fmt.Printf("ERROR: %s\n", err.Error())
+				} else {
+					fmt.Printf("%s\n", resp)
+				}
+			}
+		}
 	} else if *action == "fg" {
 		_, err := folib.NewFanGraphsClient()
 		if err != nil {
