@@ -131,7 +131,10 @@ func main() {
 
 			statline := statsByPlayer[player.PlayerKey]
 			if player.PositionType == "P" {
-				metadata = fmt.Sprintf("K%%:%f", statline[folib.P_STRIKE_OUTS] / statline[folib.P_BATTERS_FACED])
+				metadata = fmt.Sprintf("K%%:%f BB%%:%f K-BB%%:%f",
+					statline[folib.P_STRIKE_OUTS] / statline[folib.P_BATTERS_FACED],
+					statline[folib.P_WALKS] / statline[folib.P_BATTERS_FACED],
+					(statline[folib.P_STRIKE_OUTS] - statline[folib.P_WALKS]) / statline[folib.P_BATTERS_FACED])
 			} else {
 				metadata = fmt.Sprintf("HR/G:%f R/G:%f RBI/G:%f SB/G:%f",
 					statline[folib.B_HOME_RUNS] / statline[folib.B_GAMES],
