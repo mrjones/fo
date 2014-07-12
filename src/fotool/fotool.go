@@ -64,6 +64,51 @@ func main() {
 		yahooclient := loadYahooClientOrDie(*consumerKey, *consumerSecret, *tokenFile)
 		fo := folib.NewFO(yahooclient, zipsclient)
 		fo.Optimize()
+	} else if *action == "summarize" {
+		yahooclient := loadYahooClientOrDie(*consumerKey, *consumerSecret, *tokenFile)
+
+		games, err := yahooclient.GetGames()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for i, game := range(games) {
+			fmt.Printf("%d. %s %s\n", i, game.Name, game.Season)
+		}
+
+		gameidx := 0
+		if len(games) > 1 {
+			log.Fatal("I should ask you which game here and set gameidx...")
+		}
+
+		leagues, err := yahooclient.GetLeagues(games[gameidx].GameKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("%d leagues\n", len(leagues))
+		for i, league := range(leagues) {
+			fmt.Printf("%d. %s\n", i, league.Name)
+		}
+
+		leagueidx := 0
+		if len(leagues) > 1 {
+			log.Fatal("I should ask you which game here and set leagueidx...")
+		}
+
+		teams, err := yahooclient.GetTeams(leagues[leagueidx].LeagueKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for i, team := range(teams) {
+			icon := ""
+			if team.IsMyTeam == 1 {
+				icon = "*"
+			}
+			fmt.Printf("%d. %s %s\n", i, team.Name, icon)
+		}
+
 	} else if *action == "interactive" {
 		yahooclient := loadYahooClientOrDie(*consumerKey, *consumerSecret, *tokenFile)
 

@@ -32,6 +32,7 @@ func NewYahooClient(consumerKey, consumerSecret, tokenFile string) *YahooClient 
 }
 
 func (yc *YahooClient) Get(url string) (string, error) {
+	fmt.Printf("Getting '%s'\n", url)
 	token, err := yc.getAccessToken()
 	if err != nil {
 		return "", err
@@ -55,6 +56,64 @@ func (yc *YahooClient) Get(url string) (string, error) {
 	return string(bits), nil
 }
 
+func (yc *YahooClient) GetGames() ([]YahooGame, error) {
+	body, err := yc.Get("http://fantasysports.yahooapis.com/fantasy/v2/game/mlb")
+	if err != nil {
+		return []YahooGame{}, err
+	}
+
+	var data FantasyContent
+	err = xml.Unmarshal([]byte(body), &data)
+	if err != nil {
+		return []YahooGame{}, err
+	}
+
+	return data.Games, nil
+}
+
+func (yc *YahooClient) GetLeagues(gameKey string) ([]YahooLeague, error) {
+	url := fmt.Sprintf("http://fantasysports.yahooapis.com/fantasy/v2/users;use_login=1/games;game_keys=%s/leagues", gameKey)
+	body, err := yc.Get(url)
+	if err != nil {
+		return []YahooLeague{}, err
+	}
+
+	var data FantasyContent
+	err = xml.Unmarshal([]byte(body), &data)
+	if err != nil {
+		return []YahooLeague{}, err
+	}
+
+	if len(data.Users) != 1 {
+		return []YahooLeague{}, fmt.Errorf("Wrong number of matching users: %d", len(data.Users))
+	}
+
+	if len(data.Users[0].Games) != 1 {
+		return []YahooLeague{}, fmt.Errorf("Wrong number of matching games: %d", len(data.Users[0].Games))
+	}
+	
+	return data.Users[0].Games[0].Leagues, nil
+}
+
+func (yc* YahooClient) GetTeams(leagueKey string) ([]YahooTeam, error) {
+	url := fmt.Sprintf("http://fantasysports.yahooapis.com/fantasy/v2/leagues;league_keys=%s/teams", leagueKey)
+
+	body, err := yc.Get(url)
+	if err != nil {
+		return []YahooTeam{}, err
+	}
+
+	var data ListTeamsReply
+	err = xml.Unmarshal([]byte(body), &data)
+	if err != nil {
+		return []YahooTeam{}, err
+	}
+
+	
+	return data.Teams, nil
+}
+
+// old api (hardcoded)
 
 func (yc *YahooClient) CurrentStats() (*map[TeamID]StatLine, error) {
 	response, err := yc.cacheGet(
@@ -165,14 +224,34 @@ type YahooClient struct {
 }
 
 type FantasyContent struct {
-	Team   YahooTeam   `xml:"team"`
+  Team   YahooTeam   `xml:"team"`
 	League YahooLeague `xml:"league"`
+	Games  []YahooGame `xml:"game"`
+	Users  []YahooUser `xml:"users>user"`
+}
+
+type ListTeamsReply struct {
+	Teams []YahooTeam `xml:"leagues>league>teams>team"`
+}
+
+type YahooUser struct {
+  Games []YahooGame `xml:"games>game"`
+}
+
+type YahooGame struct {
+	GameKey string `xml:"game_key"`
+	GameId string `xml:"game_id"`
+	Name string `xml:"name"`
+	Season string `xml:"season"`
+
+	Leagues []YahooLeague `xml:"leagues>league"`
 }
 
 type YahooTeam struct {
 	Name    string `xml:"name"`
 	TeamKey string `xml:"team_key"`
 	TeamId  TeamID `xml:"team_id"`
+	IsMyTeam int `xml:"is_owned_by_current_login"`
 
 	Roster []YahooPlayer `xml:"roster>players>player"`
 
@@ -196,6 +275,7 @@ type YahooLeague struct {
 	Teams2    []YahooTeam `xml:"teams>team"` // OMG :(
 	LeagueKey string      `xml:"league_key"`
 	Id        int         `xml:"league_id"`
+	Name      string      `xml:"name"`
 }
 
 //
@@ -330,6 +410,7 @@ func accessTokenFromPlainString(s string) (*oauth.AccessToken, error) {
 //
 // yurl http://fantasysports.yahooapis.com/fantasy/v2/player/328.p.8395/metadata
 // yurl http://fantasysports.yahooapis.com/fantasy/v2/player/328.p.8395/stats
+// 
 
 
 
