@@ -116,13 +116,20 @@ func main() {
 			log.Fatal(err)
 		}
 
+		allPlayerKeys := []string{}
+		for _, player := range(players) {
+			allPlayerKeys = append(allPlayerKeys, player.PlayerKey)
+		}
+
+		statsByPlayer, err := yahooclient.GetStats(allPlayerKeys)
+
 		for i, player := range(players) {
 			metadata := ""
-			statline, err := yahooclient.GetStats(player.PlayerKey)
 			if err != nil {
 				log.Fatal(err)
 			}
 
+			statline := statsByPlayer[player.PlayerKey]
 			if player.PositionType == "P" {
 				metadata = fmt.Sprintf("K%%:%f", statline[folib.P_STRIKE_OUTS] / statline[folib.P_BATTERS_FACED])
 			} else {

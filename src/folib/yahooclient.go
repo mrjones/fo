@@ -137,37 +137,65 @@ func (yc* YahooClient) GetRoster(teamKey string) ([]YahooPlayer, error) {
 	return data.Players, nil	
 }
 
-type getStatsReply struct {
-	Stats []YahooStat `xml:"player>player_stats>stats>stat"`
+type getStatsPlayer struct {
+	Stats []YahooStat `xml:"player_stats>stats>stat"`
+	PlayerKey string `xml:"player_key"`
+	FullName string `xml:"name>full"`
 }
 
-func (yc* YahooClient) GetStats(playerKey string) (StatLine, error) {
-	url := fmt.Sprintf("http://fantasysports.yahooapis.com/fantasy/v2/player/%s/stats", playerKey)
+type getStatsReply struct {
+	Players []getStatsPlayer `xml:"players>player"`
+}
 
-	body, err := yc.Get(url)
-	if err != nil {
-		return StatLine{}, err
-	}
+func (yc* YahooClient) GetStats(playerKeys []string) (map[string]StatLine, error) {
+	result := make(map[string]StatLine)
 
-	var data getStatsReply
-	err = xml.Unmarshal([]byte(body), &data)
-	if err != nil {
-		return StatLine{}, err
-	}
+	MAX_IDS_PER_REQUEST := 20 // Yahoo won't return more than 25 per request
 
-	statline := StatLine{}
-	yahooIdToStatIdMap := mapYahooIdToStatId()
-	for _, ystat := range(data.Stats) {
-		statid, ok := yahooIdToStatIdMap[ystat.ID]
-		if ok {
-			statval, err := strconv.ParseFloat(ystat.Value, 64)
-			if err == nil {
-				statline[statid] = Stat(statval)
+	windowStart := 0
+
+	for {
+		if windowStart >= len(playerKeys) {
+			break
+		}
+		windowSize := MAX_IDS_PER_REQUEST
+		if (len(playerKeys) - windowStart < windowSize) {
+			windowSize = len(playerKeys) - windowStart
+		}
+		window := playerKeys[windowStart:windowStart+windowSize]
+		windowStart += windowSize
+
+		url := fmt.Sprintf("http://fantasysports.yahooapis.com/fantasy/v2/players;player_keys=%s/stats", strings.Join(window, ","))
+
+		body, err := yc.Get(url)
+		if err != nil {
+			return result, err
+		}
+
+		var data getStatsReply
+		err = xml.Unmarshal([]byte(body), &data)
+		if err != nil {
+			return result, err
+		}
+
+
+		yahooIdToStatIdMap := mapYahooIdToStatId()
+		for _, player := range(data.Players) {
+			statline := StatLine{}
+			for _, ystat := range(player.Stats) {
+				statid, ok := yahooIdToStatIdMap[ystat.ID]
+				if ok {
+					statval, err := strconv.ParseFloat(ystat.Value, 64)
+					if err == nil {
+						statline[statid] = Stat(statval)
+					}
+				}
 			}
+			result[player.PlayerKey] = statline
 		}
 	}
 
-	return statline, nil
+	return result, nil
 }
 
 // old api (hardcoded)
