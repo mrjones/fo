@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 	"os"
 )
 
@@ -143,6 +144,14 @@ func main() {
 					statline[folib.B_STOLEN_BASES] / statline[folib.B_GAMES])
 					
 			}
+
+			for _, status := range(player.StartingStatus) {
+				if status.Date == time.Now().Format("2006-01-02") &&
+					status.IsStarting == 1 {
+					metadata = metadata + " *"
+				}
+			}
+
 			fmt.Printf("%2d. %s %-20s %s\n", i, player.PositionType, player.FullName, metadata)
 		}
 		

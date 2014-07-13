@@ -178,7 +178,6 @@ func (yc* YahooClient) GetStats(playerKeys []string) (map[string]StatLine, error
 			return result, err
 		}
 
-
 		yahooIdToStatIdMap := mapYahooIdToStatId()
 		for _, player := range(data.Players) {
 			statline := StatLine{}
@@ -344,11 +343,17 @@ type YahooStat struct {
 	Value string `xml:"value"`
 }
 
+type YahooStartingStatus struct {
+	IsStarting int `xml:"is_starting"`
+	Date string `xml:"date"`
+}
+
 type YahooPlayer struct {
 	PlayerKey    string   `xml:"player_key"`
 	FullName     string   `xml:"name>full"`
 	PositionType string   `xml:"position_type"`
 	Position     []string `xml:"eligible_positions>position"`
+	StartingStatus []YahooStartingStatus `xml:"starting_status"`
 }
 
 type YahooLeague struct {
